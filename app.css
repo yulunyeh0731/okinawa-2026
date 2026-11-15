@@ -231,3 +231,7 @@ a{color:inherit}
 .ix{color:var(--ink2);padding:4px 6px}
 .isteps{padding-left:22px;font-size:16px;line-height:1.9}
 .ishare{display:inline-flex;vertical-align:-3px;color:#2f7cf6}
+
+#v-trip{touch-action:pan-y}
+.tb{will-change:transform}
+.fact.wx{background:var(--paper);border:1px solid var(--line);color:var(--ink)}

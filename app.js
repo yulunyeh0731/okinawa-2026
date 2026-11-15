@@ -59,14 +59,51 @@ function applyTheme(day){
   document.querySelector('meta[name="theme-color"]').setAttribute("content", day.theme.w3);
 }
 
+/* ---------- 天氣（Open-Meteo，免金鑰；存在手機裡，沒網路也看得到上次的） ---------- */
+const WX_ICON = c => c === 0 ? ["☀️", "晴"] : c <= 1 ? ["🌤️", "晴"] : c === 2 ? ["⛅", "晴時多雲"] : c === 3 ? ["☁️", "陰"]
+  : c <= 48 ? ["🌫️", "霧"] : c <= 57 ? ["🌦️", "毛毛雨"] : c <= 63 ? ["🌧️", "雨"] : c <= 67 ? ["🌧️", "大雨"]
+  : c <= 81 ? ["🌦️", "陣雨"] : c <= 82 ? ["🌧️", "大陣雨"] : ["⛈️", "雷雨"];
+let WX = {}; try { WX = JSON.parse(localStorage.getItem("oki_wx") || "{}"); } catch (e) {}
+function wxChip(day){
+  const w = WX.days && WX.days[day.date];
+  if (!w || !day.wx) return `<span class="fact wx" data-wx hidden></span>`;
+  const [ic, tx] = WX_ICON(w.c);
+  return `<span class="fact wx" data-wx>${ic} ${esc(day.wx.at)} ${tx} ${Math.round(w.lo)}–${Math.round(w.hi)}°${w.p != null ? `　降雨 ${w.p}%` : ""}</span>`;
+}
+async function loadWeather(){
+  if (WX.t && Date.now() - WX.t < 2 * 3600e3) return;
+  const ds = DAYS.filter(d => d.wx);
+  const q = new URLSearchParams({
+    latitude: ds.map(d => d.wx.lat).join(","), longitude: ds.map(d => d.wx.lon).join(","),
+    daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+    timezone: "Asia/Tokyo", start_date: DAYS[0].date, end_date: DAYS[DAYS.length - 1].date
+  });
+  try {
+    const r = await fetch("https://api.open-meteo.com/v1/forecast?" + q);
+    if (!r.ok) return;
+    let j = await r.json(); if (!Array.isArray(j)) j = [j];
+    const days = {};
+    ds.forEach((d, k) => {
+      const D = j[k] && j[k].daily; if (!D) return;
+      const i = D.time.indexOf(d.date);
+      if (i < 0 || D.weather_code[i] == null) return;
+      days[d.date] = { c: D.weather_code[i], hi: D.temperature_2m_max[i], lo: D.temperature_2m_min[i], p: D.precipitation_probability_max[i] };
+    });
+    WX = { t: Date.now(), days };
+    try { localStorage.setItem("oki_wx", JSON.stringify(WX)); } catch (e) {}
+    const slot = document.querySelector("#v-trip [data-wx]");
+    if (slot) { const tmp = document.createElement("div"); tmp.innerHTML = wxChip(DAYS[curDay]); slot.replaceWith(tmp.firstChild); }
+  } catch (e) {}
+}
+
 function renderTrip(){
   const day = DAYS[curDay];
   applyTheme(day);
   const t = todayStr();
-  let h = `<div class="tabs" role="tablist">${DAYS.map((d, i) => `<button class="tab ${i===curDay?"on":""}" data-day="${i}" role="tab" aria-selected="${i===curDay}"><b>${d.d}</b>${d.date===t?'<span class="today">今天</span>':d.wk}</button>`).join("")}</div>
-  ${installBanner()}
+  const tabs = `<div class="tabs" role="tablist">${DAYS.map((d, i) => `<button class="tab ${i===curDay?"on":""}" data-day="${i}" role="tab" aria-selected="${i===curDay}"><b>${d.d}</b>${d.date===t?'<span class="today">今天</span>':d.wk}</button>`).join("")}</div>`;
+  let h = `${installBanner()}
   <div class="hd">${headerSvg(day)}<div class="txt"><h1>11 月 ${day.d} 日</h1><div class="route">${esc(day.route)}</div></div></div>
-  <div class="facts">${day.facts.map(f => `<span class="fact ${f.warn?"warn":""}">${esc(f.t)}</span>`).join("")}</div>
+  <div class="facts">${wxChip(day)}${day.facts.map(f => `<span class="fact ${f.warn?"warn":""}">${esc(f.t)}</span>`).join("")}</div>
   <div class="line">`;
   day.items.forEach(it => {
     if (it.type === "drive") { h += `<div class="drive"><span>${esc(it.text)}</span></div>`; return; }
@@ -106,7 +143,7 @@ function renderTrip(){
     h += `<div class="lodge"><small>今晚住</small><b>${esc(L2.name)}</b><p>${esc(L2.note)}</p>${actsHtml({ addr: L2.addr, map: L2.map })}</div>`;
   }
   const el = document.getElementById("v-trip");
-  el.innerHTML = h;
+  el.innerHTML = tabs + `<div class="tb">${h}</div>`;
   el.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { curDay = +b.dataset.day; renderTrip(); window.scrollTo({ top: 0 }); });
   bindCopy(el);
   bindInstall(el);
@@ -127,6 +164,8 @@ function renderInfo(){
     <div style="margin-top:12px">${installButtonInfo()}</div>
     ${sec("訂位資料", "預約號碼、確認碼在原始表", `<div class="card"><p>租車預約號碼、機票確認碼這些不放在網頁上（網頁是公開的）。需要時打開原始表看，只有被分享的人打得開。</p>
       <a class="big-link" href="${SOURCE_SHEET}" target="_blank" rel="noopener">打開原始行程表</a></div>`)}
+    ${sec("天氣", "那霸・名護・讀谷的預報", `<div class="card"><p>每天行程頁上方會顯示當天預報（出發前約兩週內才有，越近越準）。要看每小時的話點這裡：</p>
+      <div class="acts"><a class="act" href="https://tenki.jp/forecast/10/50/9110/47201/" target="_blank" rel="noopener">那霸</a><a class="act" href="https://tenki.jp/forecast/10/50/9120/47209/" target="_blank" rel="noopener">名護・大浦</a><a class="act" href="https://tenki.jp/forecast/10/50/9110/47324/" target="_blank" rel="noopener">讀谷</a></div></div>`)}
     ${sec("航班", "去 IT232・回 IT233", `<div class="card"><dl class="kv">
       <dt>去程</dt><dd><b>IT232</b>　11/18（三）18:20 桃園 → 20:40 那霸</dd>
       <dt>回程</dt><dd><b>IT233</b>　11/23（一）21:30 那霸 → 22:05 桃園</dd>
@@ -218,53 +257,56 @@ function toast(msg){
 
 function show(v){
   document.querySelectorAll(".view").forEach(x => x.classList.toggle("on", x.id === "v-" + v));
-  /* 行程頁左右滑換天 */
-(() => {
-  const el = document.getElementById("v-trip");
-  let x0 = null, y0 = 0, t0 = 0;
-  el.addEventListener("touchstart", e => {
-    if (e.touches.length !== 1 || e.target.closest(".tabs, details summary")) { x0 = null; return; }
-    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
-  }, { passive: true });
-  el.addEventListener("touchend", e => {
-    if (x0 === null) return;
-    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
-    x0 = null;
-    if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.8 || Date.now() - t0 > 600) return;
-    const n = curDay + (dx < 0 ? 1 : -1);
-    if (n < 0 || n >= DAYS.length) return;
-    curDay = n; renderTrip(); window.scrollTo({ top: 0 });
-  }, { passive: true });
-})();
-
 document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
   if (v === "ledger") renderLedger();
   window.scrollTo({ top: 0 });
   try { history.replaceState(null, "", "#" + v); } catch (e) {}
 }
 
-/* 行程頁左右滑換天 */
+/* 行程頁左右滑換天：內容跟著手指走 */
 (() => {
   const el = document.getElementById("v-trip");
-  let x0 = null, y0 = 0, t0 = 0;
+  const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let x0 = 0, y0 = 0, t0 = 0, dx = 0, lock = null, on = false;
+  const tb = () => el.querySelector(".tb");
+  const setX = (x, anim) => { const t = tb(); if (!t) return; t.style.transition = anim ? "transform .2s ease-out" : "none"; t.style.transform = x ? `translateX(${x}px)` : ""; };
   el.addEventListener("touchstart", e => {
-    if (e.touches.length !== 1 || e.target.closest(".tabs, details summary")) { x0 = null; return; }
-    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
+    on = e.touches.length === 1 && !e.target.closest(".tabs");
+    if (!on) return;
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now(); dx = 0; lock = null;
   }, { passive: true });
-  el.addEventListener("touchend", e => {
-    if (x0 === null) return;
-    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
-    x0 = null;
-    if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.8 || Date.now() - t0 > 600) return;
-    const n = curDay + (dx < 0 ? 1 : -1);
-    if (n < 0 || n >= DAYS.length) return;
-    curDay = n; renderTrip(); window.scrollTo({ top: 0 });
+  el.addEventListener("touchmove", e => {
+    if (!on) return;
+    const mx = e.touches[0].clientX - x0, my = e.touches[0].clientY - y0;
+    if (!lock && (Math.abs(mx) > 10 || Math.abs(my) > 10)) lock = Math.abs(mx) > Math.abs(my) * 1.3 ? "h" : "v";
+    if (lock !== "h") return;
+    const edge = (curDay === 0 && mx > 0) || (curDay === DAYS.length - 1 && mx < 0);
+    dx = edge ? mx * 0.25 : mx;
+    setX(dx, false);
   }, { passive: true });
+  const end = () => {
+    if (!on) return; on = false;
+    if (lock !== "h") return;
+    const w = el.clientWidth, dir = dx < 0 ? 1 : -1, n = curDay + dir;
+    const fast = Math.abs(dx) > 40 && Math.abs(dx) / (Date.now() - t0) > 0.45;
+    if ((Math.abs(dx) > w * 0.22 || fast) && n >= 0 && n < DAYS.length) {
+      const go = () => {
+        curDay = n; renderTrip(); window.scrollTo({ top: 0 });
+        if (calm) return;
+        setX(dir * w * 0.35, false); tb().getBoundingClientRect(); setX(0, true);
+      };
+      if (calm) go(); else { setX(-dir * w, true); setTimeout(go, 160); }
+    } else setX(0, true);
+  };
+  el.addEventListener("touchend", end, { passive: true });
+  el.addEventListener("touchcancel", end, { passive: true });
 })();
 
 document.querySelectorAll(".nav button").forEach(b => b.onclick = () => show(b.dataset.v));
 curDay = pickInitialDay();
 renderTrip();
+loadWeather();
+document.addEventListener("visibilitychange", () => { if (!document.hidden) loadWeather(); });
 renderInfo();
 initLedger();
 const h0 = (location.hash || "").slice(1);

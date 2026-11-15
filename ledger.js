@@ -253,13 +253,29 @@ function renderSettle(){
     const other = L.settleCur === "TWD" ? "約 ¥ " + Math.round(x.v).toLocaleString("en-US") : "約 NT$ " + Math.round(x.v * L.rate).toLocaleString("en-US");
     h += `<div class="x">${esc(x.from)}<span class="arr"></span>${esc(x.to)}<span class="v">${sMoney(x.v)}<small>${other}</small></span></div>`;
   });
-  h += `</div><div class="hint" style="margin-top:10px">「要出」是每個人最後該負擔的錢（幫人出的已經算進去），「已付」是他實際掏出來的錢。</div>
+  h += `</div><div style="padding:10px 18px 0"><button class="act" data-act="copyset" style="width:100%">複製結算結果（貼到 LINE）</button></div>`;
+  h += `<div class="hint" style="margin-top:10px">「要出」是每個人最後該負擔的錢（幫人出的已經算進去），「已付」是他實際掏出來的錢。</div>
   <div class="page" style="padding-top:6px"><h2>其他</h2>
     <div class="card"><div class="acts"><button class="act" data-act="fund">記一筆繳公費</button><button class="act" data-act="rate">改匯率（現在 ${L.rate}）</button><button class="act" data-act="me">我不是 ${esc(L.me)}</button></div></div>
   </div>`;
   return h;
 }
 
+function settleText(){
+  const { rows, xfers } = settle();
+  const other = v => L.settleCur === "TWD" ? "約 ¥ " + Math.round(v).toLocaleString("en-US") : "約 NT$ " + Math.round(v * L.rate).toLocaleString("en-US");
+  let t = "沖繩 2026 旅費結算\n\n";
+  t += xfers.length ? "這樣轉就清了：\n" + xfers.map(x => `${x.from} → ${x.to}　${sMoney(x.v)}（${other(x.v)}）`).join("\n") : "大家剛好打平，不用轉。";
+  t += "\n\n每個人最後負擔：\n" + rows.map(r => `${r.n}　${sMoney(r.owe)}`).join("\n");
+  t += `\n\n（台幣以 1 円 ≈ ${L.rate} 台幣換算）`;
+  return t;
+}
+async function copySettle(){
+  const v = settleText();
+  try { await navigator.clipboard.writeText(v); }
+  catch (e) { const ta = document.createElement("textarea"); ta.value = v; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
+  toast("已複製結算結果，可以貼到 LINE");
+}
 function whoAmI(){
   return `<div class="page"><h1>記帳</h1><p style="margin-top:8px;color:var(--ink2)">先選你是誰，之後「誰付的」會預設是你。</p>
   <div class="chips" style="margin-top:14px">${PEOPLE.map(p => `<button class="chip" data-me="${p}">${p}</button>`).join("")}</div></div>`;
@@ -276,6 +292,7 @@ function bindLedger(el){
     if (a === "add") openEntry(null);
     if (a === "sync") { toast("同步中…"); syncAll(); }
     if (a === "fund") openFund();
+    if (a === "copyset") copySettle();
     if (a === "rate") { const v = prompt("1 日圓等於多少台幣？", L.rate); const n = parseFloat(v); if (n > 0 && n < 1) { L.rate = n; lsSet("oki_rate", n); renderLedger(); } }
     if (a === "me") { L.me = null; lsSet("oki_me", null); renderLedger(); }
   });

@@ -17,7 +17,7 @@ const LODGES = {
 
 const DAYS = [
   {
-    date: "2026-11-18", d: 18, wk: "週三", route: "桃園　往　那霸",
+    date: "2026-11-18", wx: { lat: 26.21, lon: 127.68, at: "那霸" }, d: 18, wk: "週三", route: "桃園　往　那霸",
     theme: { w1:"#8E9CC4", w2:"#4A5C96", w3:"#1E2A55", flower:"#E86A7E", te:"#C9CEDD", tf:"#E6E9F2", tp:"#B9C0D6", bg:"#F1F2F7", chip:"#E1E4EF", line:"#B6BEDA" },
     facts: [ {t:"晚上落地"}, {t:"虎航晚班常延誤，入住可能過 22:00", warn:true} ],
     items: [
@@ -29,7 +29,7 @@ const DAYS = [
     lodge: "almont"
   },
   {
-    date: "2026-11-19", d: 19, wk: "週四", route: "那霸　往　古宇利・名護",
+    date: "2026-11-19", wx: { lat: 26.59, lon: 127.98, at: "名護" }, d: 19, wk: "週四", route: "那霸　往　古宇利・名護",
     theme: { w1:"#8FE0C8", w2:"#2BB59A", w3:"#157A7A", flower:"#D2384E", te:"#BFE6D8", tf:"#E0F3EC", tp:"#A8DCC9", bg:"#F1F6F4", chip:"#DDEFEA", line:"#9FD3CC" },
     facts: [ {t:"日落約 17:39"}, {t:"今天開最遠，約 1.5 小時到古宇利"} ],
     items: [
@@ -53,7 +53,7 @@ const DAYS = [
     lodge: "coral"
   },
   {
-    date: "2026-11-20", d: 20, wk: "週五", route: "PARTY DAY",
+    date: "2026-11-20", wx: { lat: 26.55, lon: 128.05, at: "大浦" }, d: 20, wk: "週五", route: "PARTY DAY",
     theme: { w1:"#9AD7E6", w2:"#3FA7C9", w3:"#1F6F99", flower:"#E86A7E", te:"#C3E1EA", tf:"#E2F1F5", tp:"#ADD6E2", bg:"#F1F5F7", chip:"#DCEBF1", line:"#A6D2E1" },
     facts: [ {t:"日落約 17:38"}, {t:"杰和凡宜的 party"} ],
     items: [
@@ -65,7 +65,7 @@ const DAYS = [
     lodge: "coral"
   },
   {
-    date: "2026-11-21", d: 21, wk: "週六", route: "名護大浦　往　讀谷宇座",
+    date: "2026-11-21", wx: { lat: 26.40, lon: 127.73, at: "讀谷" }, d: 21, wk: "週六", route: "名護大浦　往　讀谷宇座",
     theme: { w1:"#F3C089", w2:"#E58A5C", w3:"#2E5E80", flower:"#F2B33D", te:"#F0DCC8", tf:"#F8EEE4", tp:"#EBCDB3", bg:"#F7F3EF", chip:"#F1E3D6", line:"#E7C3A5" },
     facts: [ {t:"日落約 17:38"}, {t:"日本三連休第一天，58 號會塞", warn:true} ],
     items: [
@@ -95,7 +95,7 @@ const DAYS = [
     lodge: "livele"
   },
   {
-    date: "2026-11-22", d: 22, wk: "週日", route: "讀谷　往　勝連城",
+    date: "2026-11-22", wx: { lat: 26.33, lon: 127.83, at: "中部" }, d: 22, wk: "週日", route: "讀谷　往　勝連城",
     theme: { w1:"#B6E3F0", w2:"#4BB3D6", w3:"#1C6E9E", flower:"#D2384E", te:"#C6E2EE", tf:"#E4F2F8", tp:"#B0D7E8", bg:"#F1F6F9", chip:"#DDEEF5", line:"#A9D3E6" },
     facts: [ {t:"日落約 17:37"}, {t:"三連休第二天，晚餐記得先訂", warn:true} ],
     items: [
@@ -117,7 +117,7 @@ const DAYS = [
     lodge: "livele"
   },
   {
-    date: "2026-11-23", d: 23, wk: "週一", route: "讀谷　往　那霸機場",
+    date: "2026-11-23", wx: { lat: 26.18, lon: 127.67, at: "那霸" }, d: 23, wk: "週一", route: "讀谷　往　那霸機場",
     theme: { w1:"#C8B6E2", w2:"#7E68B5", w3:"#2C2F6B", flower:"#F4A9BB", te:"#D9D0EA", tf:"#EEE9F6", tp:"#CBBFE2", bg:"#F4F2F8", chip:"#E6E1F0", line:"#C4B9DE" },
     facts: [ {t:"日本國定假日（勤勞感謝日）", warn:true}, {t:"還車前記得加滿油"} ],
     pending: true,
@@ -129,6 +129,7 @@ const DAYS = [
           { n:"海をのむ", note:"沖繩麵，在うるま", h:"11:00–15:00", closed:[2,3,4], closedText:"只開週五到週一", link:"https://www.instagram.com/umi_wo_nomu/" },
           { n:"ASMUI 大石林山", h:"16:00 停止入場", note:"本島最北，9:30–17:30。從讀谷單程約 2 小時。門票 2,500 円", link:"https://asmui.jp" }
         ] },
+      { type:"stop", title:"還車前加滿油", note:"兩台都要。加油站照取車時 ORIX 的說明，收據先留著，還車時可能會要看。" },
       { type:"fixed", time:"19:00 前", title:"ORIX 還車（那覇空港店）", sub:"豊見城市豊崎 1-1174　外語櫃檯", tel:"098-851-0543", addr:"沖縄県豊見城市豊崎1-1174", map:"オリックスレンタカー 那覇空港店",
         note:"表上預計 18:00 還，店家 19:00 關門。還完坐接駁車到機場，約 20 分。" },
       { type:"fixed", time:"21:30", title:"台灣虎航 IT233　那霸 → 桃園", note:"預計 22:05 抵達桃園（台灣時間）。" }
