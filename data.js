@@ -52,9 +52,9 @@ const DAYS = [
   {
     date: "2026-11-20", d: 20, wk: "週五", route: "PARTY DAY",
     theme: { w1:"#9AD7E6", w2:"#3FA7C9", w3:"#1F6F99", flower:"#E86A7E", te:"#C3E1EA", tf:"#E2F1F5", tp:"#ADD6E2", bg:"#F1F5F7", chip:"#DCEBF1", line:"#A6D2E1" },
-    facts: [ {t:"日落約 17:38"}, {t:"杰和太太的 party"} ],
+    facts: [ {t:"日落約 17:38"}, {t:"杰和凡宜的 party"} ],
     items: [
-      { type:"stop", title:"整天在 CORAL ISLAND", note:"杰和太太的 party，杰那團的家人一起。" }
+      { type:"stop", title:"整天在 CORAL ISLAND", note:"杰和凡宜的 party。" }
     ],
     lodge: "coral"
   },
@@ -63,7 +63,7 @@ const DAYS = [
     theme: { w1:"#F3C089", w2:"#E58A5C", w3:"#2E5E80", flower:"#F2B33D", te:"#F0DCC8", tf:"#F8EEE4", tp:"#EBCDB3", bg:"#F7F3EF", chip:"#F1E3D6", line:"#E7C3A5" },
     facts: [ {t:"日落約 17:38"}, {t:"日本三連休第一天，58 號會塞", warn:true} ],
     items: [
-      { type:"fixed", time:"11:00 前", title:"CORAL ISLAND 退房", note:"杰那團從這裡分開走。之後的記帳預設是六個人。" },
+      { type:"fixed", time:"11:00 前", title:"CORAL ISLAND 退房" },
       { type:"drive", text:"開車約 40 分" },
       { type:"stop", title:"Cafe 天の船", sub:"本部的森林咖啡　10:30–14:30 L.O.", closed:[1,5], closedText:"週一、週五公休",
         warn:"要預約，名額一開就滿。沒訂到就直接去陶器之里吃。", mapcode:"206 862 200", tel:"070-3803-5308", map:"Cafe 天の船 本部町" },
@@ -106,7 +106,7 @@ const DAYS = [
     pending: true,
     items: [
       { type:"fixed", time:"10:00 前", title:"Livele Garden Villa 退房" },
-      { type:"stop", title:"（這天的行程倫還在補）", note:"表上的候選：",
+      { type:"stop", title:"行程還在排", note:"目前表上的候選：",
         food:[
           { n:"てぃーち", h:"11:00–15:00 L.O.", note:"沖繩麵＋芒果甜點，在豐見城，離還車點很近。公休日資料不一致，週一又是假日，出發前看 IG 確認。098-856-8558", link:"https://www.instagram.com/teech_cafe" },
           { n:"海をのむ", note:"沖繩麵，在うるま", h:"11:00–15:00", closed:[2,3,4], closedText:"只開週五到週一", link:"https://www.instagram.com/umi_wo_nomu/" },

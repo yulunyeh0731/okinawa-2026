@@ -89,7 +89,7 @@ function renderTrip(){
     </div>`;
   });
   h += `</div>`;
-  if (day.pending) h += `<div class="pending"><b>這天還沒排完。</b>倫補完最後一天的行程後會更新這頁。</div>`;
+  if (day.pending) h += `<div class="pending"><b>這天的行程還在排，</b>排好會更新這頁。</div>`;
   if (day.lodge) {
     const L2 = LODGES[day.lodge];
     h += `<div class="lodge"><small>今晚住</small><b>${esc(L2.name)}</b><p>${esc(L2.note)}</p>${actsHtml({ map: L2.map })}</div>`;
