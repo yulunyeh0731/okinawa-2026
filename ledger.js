@@ -1,7 +1,7 @@
 /* 記帳：每一筆存「每個人最後負擔多少」（shares），三種模式只是算出 shares 的不同方法。
    後端：Google Apps Script 網頁應用程式＋試算表。GAS_URL 留空時只存在這支手機。 */
 
-const GAS_URL = "";          // 部署 Apps Script 後填入
+const GAS_URL = "https://script.google.com/macros/s/AKfycbw6tTrW9Vj3LYz6aZ6Jb2TMaxybLbcSydt9hHqvuNhSCJeCbwSDHePjYx9A6U5nVSwtaQ/exec";
 const GAS_KEY = "oki2026-yeh";
 const PEOPLE = ["倫","瑄","May","妙鳳","爸","媽","杰"];
 const AFTER_SPLIT = ["倫","瑄","May","妙鳳","爸","媽"];
