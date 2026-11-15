@@ -63,7 +63,7 @@ function renderTrip(){
   const day = DAYS[curDay];
   applyTheme(day);
   const t = todayStr();
-  let h = `<div class="tabs" role="tablist">${DAYS.map((d, i) => `<button class="tab ${i===curDay?"on":""}" data-day="${i}" role="tab" aria-selected="${i===curDay}"><b>${d.d}</b>${d.wk}${d.date===t?'<span class="today">今天</span>':""}</button>`).join("")}</div>
+  let h = `<div class="tabs" role="tablist">${DAYS.map((d, i) => `<button class="tab ${i===curDay?"on":""}" data-day="${i}" role="tab" aria-selected="${i===curDay}"><b>${d.d}</b>${d.date===t?'<span class="today">今天</span>':d.wk}</button>`).join("")}</div>
   ${installBanner()}
   <div class="hd">${headerSvg(day)}<div class="txt"><h1>11 月 ${day.d} 日</h1><div class="route">${esc(day.route)}</div></div></div>
   <div class="facts">${day.facts.map(f => `<span class="fact ${f.warn?"warn":""}">${esc(f.t)}</span>`).join("")}</div>
@@ -110,7 +110,7 @@ function renderTrip(){
   el.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { curDay = +b.dataset.day; renderTrip(); window.scrollTo({ top: 0 }); });
   bindCopy(el);
   bindInstall(el);
-  const on = el.querySelector(".tab.on"); if (on) on.scrollIntoView({ inline: "center", block: "nearest" });
+
 }
 
 function sec(title, hint, body, open){
@@ -218,11 +218,49 @@ function toast(msg){
 
 function show(v){
   document.querySelectorAll(".view").forEach(x => x.classList.toggle("on", x.id === "v-" + v));
-  document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+  /* 行程頁左右滑換天 */
+(() => {
+  const el = document.getElementById("v-trip");
+  let x0 = null, y0 = 0, t0 = 0;
+  el.addEventListener("touchstart", e => {
+    if (e.touches.length !== 1 || e.target.closest(".tabs, details summary")) { x0 = null; return; }
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
+  }, { passive: true });
+  el.addEventListener("touchend", e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    x0 = null;
+    if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.8 || Date.now() - t0 > 600) return;
+    const n = curDay + (dx < 0 ? 1 : -1);
+    if (n < 0 || n >= DAYS.length) return;
+    curDay = n; renderTrip(); window.scrollTo({ top: 0 });
+  }, { passive: true });
+})();
+
+document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
   if (v === "ledger") renderLedger();
   window.scrollTo({ top: 0 });
   try { history.replaceState(null, "", "#" + v); } catch (e) {}
 }
+
+/* 行程頁左右滑換天 */
+(() => {
+  const el = document.getElementById("v-trip");
+  let x0 = null, y0 = 0, t0 = 0;
+  el.addEventListener("touchstart", e => {
+    if (e.touches.length !== 1 || e.target.closest(".tabs, details summary")) { x0 = null; return; }
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
+  }, { passive: true });
+  el.addEventListener("touchend", e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    x0 = null;
+    if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.8 || Date.now() - t0 > 600) return;
+    const n = curDay + (dx < 0 ? 1 : -1);
+    if (n < 0 || n >= DAYS.length) return;
+    curDay = n; renderTrip(); window.scrollTo({ top: 0 });
+  }, { passive: true });
+})();
 
 document.querySelectorAll(".nav button").forEach(b => b.onclick = () => show(b.dataset.v));
 curDay = pickInitialDay();
