@@ -72,6 +72,8 @@
 if ("serviceWorker" in navigator) {
   const had = !!navigator.serviceWorker.controller;
   navigator.serviceWorker.register("sw.js").catch(() => {});
+  // 從背景切回來時也檢查一次有沒有新版（iPhone 主畫面 app 常常只是從背景叫回來，不會重新載入）
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => {}); });
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     // 有新版時自動換上；正在記帳就先不打斷
     if (had && document.getElementById("sheet-wrap").hidden && !window.__reloaded) { window.__reloaded = true; location.reload(); }
