@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#157A7A">
+<meta name="robots" content="noindex">
+<title>沖繩 2026・家族旅行</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="hib" viewBox="-40 -40 80 80" overflow="visible">
+      <g>
+        <path id="pt" d="M0 0 C-15 -5 -18 -30 -7 -35 C-2 -37 3 -37 7 -35 C18 -30 15 -5 0 0Z"/>
+        <use href="#pt" transform="rotate(72)"/><use href="#pt" transform="rotate(144)"/><use href="#pt" transform="rotate(216)"/><use href="#pt" transform="rotate(288)"/>
+      </g>
+      <circle r="5" fill="#7A1B2E" opacity=".5"/>
+      <path d="M0 0 L16 -22" stroke="#F6D36B" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="16" cy="-23" r="2.6" fill="#F6D36B"/><circle cx="19" cy="-20" r="2" fill="#F6D36B"/><circle cx="13" cy="-25" r="2" fill="#F6D36B"/>
+    </symbol>
+    <symbol id="leaf" viewBox="-20 -40 40 80" overflow="visible">
+      <path d="M0 36 C-16 14 -14 -18 0 -36 C14 -18 16 14 0 36Z"/>
+      <path d="M0 34 L0 -32" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
+    </symbol>
+    <linearGradient id="fadeL" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".78"/><stop offset=".6" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <pattern id="tile" width="44" height="44" patternUnits="userSpaceOnUse">
+      <rect width="44" height="44" class="t-edge"/>
+      <rect x="1.5" y="1.5" width="41" height="41" rx="2" class="t-face"/>
+      <g class="t-petal">
+        <path d="M22 5 C28 12 28 16 22 22 C16 16 16 12 22 5Z"/><path d="M22 39 C28 32 28 28 22 22 C16 28 16 32 22 39Z"/>
+        <path d="M5 22 C12 16 16 16 22 22 C16 28 12 28 5 22Z"/><path d="M39 22 C32 16 28 16 22 22 C28 28 32 28 39 22Z"/>
+      </g>
+      <circle cx="22" cy="22" r="2.2" class="t-face"/>
+    </pattern>
+  </defs>
+</svg>
+
+<div id="app">
+  <section id="v-trip" class="view on"></section>
+  <section id="v-ledger" class="view"></section>
+  <section id="v-info" class="view"></section>
+</div>
+
+<nav class="nav" aria-label="主選單">
+  <button data-v="trip" class="on">行程</button>
+  <button data-v="ledger">記帳</button>
+  <button data-v="info">重要資訊</button>
+</nav>
+
+<div id="sheet-wrap" class="sheet-wrap" hidden>
+  <div class="sheet-bg" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true" id="sheet"></div>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="data.js"></script>
+<script src="ledger.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
