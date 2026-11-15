@@ -108,9 +108,9 @@ const DAYS = [
       { type:"fixed", time:"10:00 前", title:"Livele Garden Villa 退房" },
       { type:"stop", title:"行程還在排", note:"目前表上的候選：",
         food:[
-          { n:"てぃーち", h:"11:00–15:00 L.O.", note:"沖繩麵＋芒果甜點，在豐見城，離還車點很近。公休日資料不一致，週一又是假日，出發前看 IG 確認。098-856-8558", link:"https://www.instagram.com/teech_cafe" },
+          { n:"てぃーち", h:"11:00–15:00 L.O.", note:"沖繩麵＋芒果甜點，在豐見城，離還車點很近。週一可能公休，出發前看 IG 確認。098-856-8558", link:"https://www.instagram.com/teech_cafe" },
           { n:"海をのむ", note:"沖繩麵，在うるま", h:"11:00–15:00", closed:[2,3,4], closedText:"只開週五到週一", link:"https://www.instagram.com/umi_wo_nomu/" },
-          { n:"ASMUI 大石林山", h:"16:00 停止入場", note:"本島最北，9:30–17:30。從讀谷單程約 2 小時，最後一天去會很趕。門票 2,500 円", link:"https://asmui.jp" }
+          { n:"ASMUI 大石林山", h:"16:00 停止入場", note:"本島最北，9:30–17:30。從讀谷單程約 2 小時。門票 2,500 円", link:"https://asmui.jp" }
         ] },
       { type:"fixed", time:"19:00 前", title:"ORIX 還車（那覇空港店）", sub:"豊見城市豊崎 1-1174　外語櫃檯", tel:"098-851-0543", map:"オリックスレンタカー 那覇空港店",
         note:"表上預計 18:00 還。還完坐接駁車到機場，約 20 分。" },
