@@ -196,3 +196,37 @@ a{color:inherit}
   .nav{left:50%;right:auto;width:560px;transform:translateX(-50%);border-radius:0}
   .sheet{border-radius:20px 20px 0 0}
 }
+
+/* 備案 */
+.backup{margin:18px 18px 0;border:1.5px dashed var(--line);border-radius:12px;background:rgba(255,255,255,.55)}
+.backup summary{list-style:none;cursor:pointer;padding:12px 14px;font-weight:700;font-size:16px;display:flex;align-items:baseline;gap:8px}
+.backup summary::-webkit-details-marker{display:none}
+.backup summary span{font-weight:400;font-size:13px;color:var(--ink2)}
+.backup summary::after{content:"＋";margin-left:auto;color:var(--w3)}
+.backup[open] summary::after{content:"－"}
+.blist{padding:0 14px 12px}
+.bitem{padding:10px 0;border-top:1px solid rgba(0,0,0,.07)}
+.bt b{font-size:16px}
+.btag{display:inline-block;font-size:11.5px;border:1px solid var(--line);border-radius:5px;padding:0 5px;margin-left:6px;color:var(--ink2);vertical-align:2px}
+.btag.veg{color:var(--veg);border-color:#9fc0a6}
+.bh{font-size:13px;color:var(--ink2);margin-top:2px}
+.bitem p{font-size:14px;color:var(--ink2);margin-top:2px}
+
+/* 重要資訊收合 */
+.isec{background:var(--paper);border:1px solid var(--line);border-radius:12px;margin-top:10px}
+.isec summary{list-style:none;cursor:pointer;padding:13px 14px;display:flex;align-items:baseline;gap:10px}
+.isec summary::-webkit-details-marker{display:none}
+.isec summary b{font-family:var(--serif);font-size:18px;white-space:nowrap}
+.isec summary span{font-size:13px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.isec summary::after{content:"＋";margin-left:auto;color:var(--w3);padding-left:6px}
+.isec[open] summary::after{content:"－"}
+.ibody{padding:0 12px 4px}
+.ibody .card{border-color:rgba(0,0,0,.08)}
+
+/* 加到主畫面 */
+.ibanner{display:flex;align-items:center;gap:8px;margin:0 12px 8px;padding:8px 8px 8px 12px;border-radius:12px;background:var(--paper);border:1px solid var(--line);font-size:14px}
+.ibanner span{flex:1}
+.ibtn{background:var(--w3);color:#fff;border-radius:9px;padding:6px 12px;font-size:14px;font-weight:700}
+.ix{color:var(--ink2);padding:4px 6px}
+.isteps{padding-left:22px;font-size:16px;line-height:1.9}
+.ishare{display:inline-flex;vertical-align:-3px;color:#2f7cf6}
