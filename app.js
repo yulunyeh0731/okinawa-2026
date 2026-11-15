@@ -180,6 +180,7 @@ async function doInstall(){
     renderTrip(); renderInfo();
     return;
   }
+  try { history.replaceState(null, "", location.pathname); } catch (e) {}
   const s = document.getElementById("sheet");
   const ios = isIOS();
   s.innerHTML = `<h2>加到主畫面<button data-close>關閉</button></h2>
@@ -229,4 +230,8 @@ renderTrip();
 renderInfo();
 initLedger();
 const h0 = (location.hash || "").slice(1);
-if (["trip", "ledger", "info"].includes(h0)) show(h0);
+// 從主畫面圖示開啟時一律從行程開始（iPhone 會把加入當下的 #info 一起存進圖示）；同一次使用中重新整理則留在原頁
+let firstLaunch = false;
+try { firstLaunch = isStandalone() && !sessionStorage.getItem("oki_open"); sessionStorage.setItem("oki_open", "1"); } catch (e) {}
+if (firstLaunch) show("trip");
+else if (["trip", "ledger", "info"].includes(h0)) show(h0);
