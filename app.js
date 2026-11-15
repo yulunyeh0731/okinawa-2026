@@ -19,7 +19,8 @@ const weekday = date => new Date(date + "T00:00:00").getDay();
 
 function actsHtml(o){
   const a = [];
-  if (o.mapcode) a.push(`<button class="act mc" data-copy="${esc(o.mapcode)}">Mapcode ${esc(o.mapcode)}</button>`);
+  if (o.mapcode) a.push(`<button class="act mc" data-copy="${esc(o.mapcode)}" data-what="Mapcode">Mapcode ${esc(o.mapcode)}</button>`);
+  if (o.addr) a.push(`<button class="act" data-copy="${esc(o.addr)}" data-what="地址">複製地址</button>`);
   if (o.tel) a.push(`<a class="act" href="${telHref(o.tel)}">電話</a>`);
   if (o.map) a.push(`<a class="act" href="${mapHref(o.map)}" target="_blank" rel="noopener">地圖</a>`);
   if (o.link) a.push(`<a class="act" href="${esc(o.link)}" target="_blank" rel="noopener">網頁</a>`);
@@ -72,7 +73,7 @@ function renderTrip(){
       h += `<div class="fork"><div class="q">${esc(it.q)}</div>${it.opts.map(o => `
         <div class="opt"><h4><span>${esc(o.k)}</span>${esc(o.title)}</h4><p>${esc(o.text)}</p>${o.drive ? `<p style="color:var(--w3);font-size:13px">${esc(o.drive)}</p>` : ""}
         ${foodHtml(o.food, day.date)}
-        <div class="acts">${(o.acts||[]).map(a => a.mapcode ? `<button class="act mc" data-copy="${esc(a.mapcode)}">Mapcode ${esc(a.mapcode)}</button>` : a.tel ? `<a class="act" href="${telHref(a.tel)}">電話</a>` : a.map ? `<a class="act" href="${mapHref(a.map)}" target="_blank" rel="noopener">${esc(a.label || "地圖")}</a>` : `<a class="act" href="${esc(a.link)}" target="_blank" rel="noopener">${esc(a.label || "網頁")}</a>`).join("")}</div>
+        <div class="acts">${(o.acts||[]).map(a => a.mapcode ? `<button class="act mc" data-copy="${esc(a.mapcode)}" data-what="Mapcode">Mapcode ${esc(a.mapcode)}</button>` : a.addr ? `<button class="act" data-copy="${esc(a.addr)}" data-what="地址">${esc(a.label || "複製地址")}</button>` : a.tel ? `<a class="act" href="${telHref(a.tel)}">電話</a>` : a.map ? `<a class="act" href="${mapHref(a.map)}" target="_blank" rel="noopener">${esc(a.label || "地圖")}</a>` : `<a class="act" href="${esc(a.link)}" target="_blank" rel="noopener">${esc(a.label || "網頁")}</a>`).join("")}</div>
         </div>`).join("")}</div>`;
       return;
     }
@@ -92,7 +93,7 @@ function renderTrip(){
   if (day.pending) h += `<div class="pending"><b>這天的行程還在排，</b>排好會更新這頁。</div>`;
   if (day.lodge) {
     const L2 = LODGES[day.lodge];
-    h += `<div class="lodge"><small>今晚住</small><b>${esc(L2.name)}</b><p>${esc(L2.note)}</p>${actsHtml({ map: L2.map })}</div>`;
+    h += `<div class="lodge"><small>今晚住</small><b>${esc(L2.name)}</b><p>${esc(L2.note)}</p>${actsHtml({ addr: L2.addr, map: L2.map })}</div>`;
   }
   const el = document.getElementById("v-trip");
   el.innerHTML = h;
@@ -106,6 +107,12 @@ function renderInfo(){
   el.innerHTML = `<div class="page">
     <h1>重要資訊</h1>
 
+    <h2>加到手機主畫面</h2>
+    <div class="card"><ul>
+      <li>iPhone：用 Safari 打開這個網址，按下方「分享」→「加入主畫面」</li>
+      <li>Android：用 Chrome 打開，按右上角「⋮」→「加到主畫面」</li>
+    </ul><p style="margin-top:6px">之後點桌面上的扶桑花圖示就能開。打開過一次後，沒網路也看得到行程；記帳沒網路也能記，有網路時自動上傳。</p></div>
+
     <h2>訂位資料</h2>
     <div class="card"><p>租車預約號碼、機票確認碼這些不放在網頁上（網頁是公開的）。需要時打開原始表看，只有被分享的人打得開。</p>
       <a class="big-link" href="${SOURCE_SHEET}" target="_blank" rel="noopener">打開原始行程表</a></div>
@@ -117,19 +124,19 @@ function renderInfo(){
     </dl><p style="margin-top:6px">去程在桃園第一航廈。時間都是當地時間。</p></div>
 
     <h2>租車（ORIX）</h2>
-    <div class="card"><h3>取車　11/19（四）11:00</h3><p>おもろまち駅前店</p>${actsHtml({ map: "オリックスレンタカー おもろまち駅前店" })}</div>
-    <div class="card"><h3>還車　11/23（一）19:00 前</h3><p>那覇空港店（豊見城市豊崎 1-1174），外語櫃檯。還完坐接駁車到機場約 20 分。</p>${actsHtml({ tel: "098-851-0543", map: "オリックスレンタカー 那覇空港店" })}</div>
+    <div class="card"><h3>取車　11/19（四）11:00</h3><p>おもろまち駅前店，櫃檯在おもろまち站旁的 DFS（T Galleria 沖繩）裡</p>${actsHtml({ map: "オリックスレンタカー おもろまち駅前店" })}</div>
+    <div class="card"><h3>還車　11/23（一）19:00 前</h3><p>那覇空港店（豊見城市豊崎 1-1174），外語櫃檯。店家 19:00 關門。還完坐接駁車到機場約 20 分。</p>${actsHtml({ tel: "098-851-0543", addr: "沖縄県豊見城市豊崎1-1174", map: "オリックスレンタカー 那覇空港店" })}</div>
     <div class="card"><ul>
       <li>倫：EA 級油電車，放大部分行李</li>
       <li>瑄：RD 級（X-TRAIL 級），坐 4 人</li>
       <li>兩台都有保險（含 RAP）和 ETC 卡</li>
-      <li>導航輸入 Mapcode 或電話號碼最準，手冊每個點都可以直接複製 Mapcode</li>
+      <li>車上導航輸入 Mapcode、電話或地址都找得到。手冊裡有 Mapcode 的點可以直接複製；沒有的話用電話，或按「複製地址」</li>
     </ul></div>
 
     <h2>住宿</h2>
     ${[["11/18", "almont"], ["11/19–11/20", "coral"], ["11/21–11/22", "livele"]].map(([d, k]) => {
       const x = LODGES[k];
-      return `<div class="card"><h3>${d}　${esc(x.name)}</h3><p>${esc(x.note)}</p>${actsHtml({ map: x.map })}</div>`;
+      return `<div class="card"><h3>${d}　${esc(x.name)}</h3><p>${esc(x.note)}</p>${x.addr ? `<p>${esc(x.addr)}</p>` : ""}${actsHtml({ addr: x.addr, map: x.map })}</div>`;
     }).join("")}
 
     <h2>緊急</h2>
@@ -151,7 +158,7 @@ function bindCopy(root){
     const v = b.dataset.copy;
     try { await navigator.clipboard.writeText(v); }
     catch (e) { const ta = document.createElement("textarea"); ta.value = v; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
-    toast("已複製 Mapcode " + v);
+    toast(b.dataset.what === "地址" ? "已複製地址，可以貼到導航" : "已複製 Mapcode " + v);
   });
 }
 

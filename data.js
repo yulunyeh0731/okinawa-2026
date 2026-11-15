@@ -7,12 +7,12 @@
 const SOURCE_SHEET = "https://docs.google.com/spreadsheets/d/1zi6GL0y19laubnoVAIIv4W4oAD1ysJLBizAOx82qRWQ/edit";
 
 const LODGES = {
-  almont: { name: "Almont Hotel Naha Omoromachi", jp: "アルモントホテル那覇おもろまち", map: "アルモントホテル那覇おもろまち",
-            note: "14:00 起入住、11:00 前退房。單軌電車おもろまち站附近。" },
-  coral:  { name: "CORAL ISLAND 珊瑚島", jp: "名護市大浦", map: "CORAL ISLAND 名護市大浦",
-            note: "16:00 起入住（最晚 21:00）、11:00 前退房。沒有櫃檯，每棟前面可停 2 台車。附近餐廳很少，晚餐先想好。" },
+  almont: { name: "Almont Hotel Naha Omoromachi", jp: "アルモントホテル那覇おもろまち", map: "アルモントホテル那覇おもろまち", addr: "沖縄県那覇市おもろまち4-3-8",
+            note: "14:00 起入住、11:00 前退房。おもろまち站走路約 4 分。過午夜才到的話要先聯絡飯店。" },
+  coral:  { name: "CORAL ISLAND 珊瑚島", jp: "名護市大浦", map: "CORAL ISLAND 名護市大浦", addr: "沖縄県名護市大浦27-5",
+            note: "16:00 起入住（最晚 21:00）、11:00 前退房。沒有櫃檯，入住方式（門鎖、鑰匙）看訂房信。每棟前面可停 2 台車。附近餐廳很少，晚餐先想好。" },
   livele: { name: "Livele Garden Villa UZA くんじゅん C 棟", jp: "読谷村宇座", map: "Livele Garden Villa UZA",
-            note: "15:00 起入住、10:00 前退房。在殘波岬附近。" }
+            note: "15:00 起入住、10:00 前退房。在殘波岬附近。地址和入住方式看訂房信。" }
 };
 
 const DAYS = [
@@ -24,7 +24,7 @@ const DAYS = [
       { type:"fixed", time:"16:00", title:"到桃園機場第一航廈", note:"台灣虎航在第一航廈。" },
       { type:"fixed", time:"18:20", title:"台灣虎航 IT232　桃園 → 那霸", note:"預計 20:40 抵達那霸（日本時間）。" },
       { type:"drive", text:"坐單軌電車（ゆいレール）到おもろまち站" },
-      { type:"stop", title:"Almont Hotel 入住", sub:"アルモントホテル那覇おもろまち", map:"アルモントホテル那覇おもろまち" }
+      { type:"stop", title:"Almont Hotel 入住", sub:"アルモントホテル那覇おもろまち　おもろまち站走路約 4 分", map:"アルモントホテル那覇おもろまち" }
     ],
     lodge: "almont"
   },
@@ -34,7 +34,7 @@ const DAYS = [
     facts: [ {t:"日落約 17:39"}, {t:"今天開最遠，約 1.5 小時到古宇利"} ],
     items: [
       { type:"stop", title:"飯店早餐" },
-      { type:"fixed", time:"11:00", title:"退房＋ORIX 取車", sub:"オリックスレンタカー　おもろまち駅前店", map:"オリックスレンタカー おもろまち駅前店",
+      { type:"fixed", time:"11:00", title:"退房＋ORIX 取車", sub:"オリックスレンタカー　おもろまち駅前店（櫃檯在站旁的 DFS 裡）", map:"オリックスレンタカー おもろまち駅前店",
         note:"兩台車：倫開 EA 級（油電車，放大部分行李）、瑄開 RD 級（X-TRAIL 級，坐 4 人）。都有 ETC 卡。" },
       { type:"drive", text:"開車約 1 小時 30 分（走高速）" },
       { type:"stop", title:"古宇利島", mapcode:"485 662 831*22", tel:"0980-56-1616", map:"古宇利島",
@@ -68,16 +68,16 @@ const DAYS = [
       { type:"stop", title:"Cafe 天の船", sub:"本部的森林咖啡　10:30–14:30 L.O.", closed:[1,5], closedText:"週一、週五公休",
         warn:"要預約，名額一開就滿。沒訂到就直接去陶器之里吃。", mapcode:"206 862 200", tel:"070-3803-5308", map:"Cafe 天の船 本部町" },
       { type:"drive", text:"開車約 1 小時" },
-      { type:"stop", title:"やちむんの里（陶器之里）", map:"やちむんの里 読谷",
+      { type:"stop", title:"やちむんの里（陶器之里）", addr:"沖縄県中頭郡読谷村座喜味2653-1", map:"やちむんの里 読谷", note:"入口附近有免費停車場。里內是小坡道，穿好走的鞋。",
         food:[ { n:"Clay Cafe & Gallery", h:"週六 9:00–16:00", closed:[0,4], closedText:"週四、週日公休", link:"https://www.claycoffeeandgallery.com/portfolio" } ] },
       { type:"drive", text:"開車約 10 分" },
       { type:"fixed", time:"15:00 起", title:"Livele Garden Villa UZA 入住", sub:"くんじゅん C 棟", map:LODGES.livele.map },
       { type:"fork", q:"下午到傍晚，兩邊方向相反，選一個", opts:[
         { k:"甲", title:"北谷", text:"北谷町立博物館 10:00–17:00（特別展「北谷の縄文」，11/21–22 有繩文節活動，內容未確認）→ 北谷海邊看夕陽 → 晚餐暖暮拉麵", drive:"從住的地方開車約 40 分",
-          acts:[ {map:"北谷町立博物館", label:"博物館地圖"}, {map:"ラーメン暖暮 北谷砂辺店", label:"暖暮地圖"}, {link:"https://love.chatan.jp/zh-hant/thechatanbrand/#chatanbrandsec02", label:"北谷介紹"} ],
+          acts:[ {tel:"098-923-0300"}, {addr:"沖縄県中頭郡北谷町伊平1-11-1", label:"博物館地址"}, {map:"北谷町立博物館", label:"博物館地圖"}, {addr:"沖縄県中頭郡北谷町宮城2-123", label:"暖暮地址"}, {map:"ラーメン暖暮 北谷砂辺店", label:"暖暮地圖"}, {link:"https://love.chatan.jp/zh-hant/thechatanbrand/#chatanbrandsec02", label:"北谷介紹"} ],
           food:[ { n:"ラーメン暖暮 北谷砂辺店", h:"11:00–23:00" } ] },
         { k:"乙", title:"萬座毛", text:"萬座毛看夕陽，17:00 前要到（步道門票 100 円，開到 19:00）→ 晚餐花笠食堂", drive:"從住的地方開車約 30 分",
-          acts:[ {mapcode:"206 312 038*55"}, {tel:"098-966-8080"}, {map:"万座毛"} ],
+          acts:[ {mapcode:"206 312 038*55"}, {tel:"098-966-8080"}, {map:"万座毛"}, {addr:"沖縄県中頭郡読谷村宇座657-1", label:"花笠地址"} ],
           food:[ { n:"花笠食堂", h:"晚上時間未確認", closed:[4], closedText:"週四公休", note:"在殘波的御菓子御殿 1 樓。晚上可能很早收，先打電話：098-958-7333" } ] }
       ]}
     ],
@@ -88,7 +88,7 @@ const DAYS = [
     theme: { w1:"#B6E3F0", w2:"#4BB3D6", w3:"#1C6E9E", flower:"#D2384E", te:"#C6E2EE", tf:"#E4F2F8", tp:"#B0D7E8", bg:"#F1F6F9", chip:"#DDEEF5", line:"#A9D3E6" },
     facts: [ {t:"日落約 17:37"}, {t:"三連休第二天，晚餐記得先訂", warn:true} ],
     items: [
-      { type:"stop", title:"BANTA CAFE by 星野リゾート", sub:"海景咖啡　8:00–17:30", map:"バンタカフェ 読谷" },
+      { type:"stop", title:"BANTA CAFE by 星野リゾート", sub:"海景咖啡　週末和假日 8:00 開", tel:"098-921-6810", addr:"沖縄県中頭郡読谷村儀間560", map:"バンタカフェ 読谷", note:"在這裡消費，停車場免費 1 小時。" },
       { type:"drive", text:"開車約 20 分" },
       { type:"stop", title:"琉球村", sub:"9:30–17:00　門票 2,000 円（用 Agoda 買比較便宜）", mapcode:"206 033 096*41", map:"琉球村 恩納村",
         note:"琉球王國主題園區：表演、百年古宅、彩繪風獅爺、DIY、換裝。", link:"https://okinawa.letsgojp.com/archives/884774/" },
@@ -108,12 +108,12 @@ const DAYS = [
       { type:"fixed", time:"10:00 前", title:"Livele Garden Villa 退房" },
       { type:"stop", title:"行程還在排", note:"目前表上的候選：",
         food:[
-          { n:"てぃーち", h:"11:00–15:00 L.O.", note:"沖繩麵＋芒果甜點，在豐見城，離還車點很近。週一可能公休，出發前看 IG 確認。098-856-8558", link:"https://www.instagram.com/teech_cafe" },
+          { n:"てぃーち", h:"11:00–15:00 L.O.", note:"沖繩麵＋芒果甜點，在豐見城（豊見城市翁長664-2），離還車點很近。週一可能公休，出發前看 IG 確認。098-856-8558", link:"https://www.instagram.com/teech_cafe" },
           { n:"海をのむ", note:"沖繩麵，在うるま", h:"11:00–15:00", closed:[2,3,4], closedText:"只開週五到週一", link:"https://www.instagram.com/umi_wo_nomu/" },
           { n:"ASMUI 大石林山", h:"16:00 停止入場", note:"本島最北，9:30–17:30。從讀谷單程約 2 小時。門票 2,500 円", link:"https://asmui.jp" }
         ] },
-      { type:"fixed", time:"19:00 前", title:"ORIX 還車（那覇空港店）", sub:"豊見城市豊崎 1-1174　外語櫃檯", tel:"098-851-0543", map:"オリックスレンタカー 那覇空港店",
-        note:"表上預計 18:00 還。還完坐接駁車到機場，約 20 分。" },
+      { type:"fixed", time:"19:00 前", title:"ORIX 還車（那覇空港店）", sub:"豊見城市豊崎 1-1174　外語櫃檯", tel:"098-851-0543", addr:"沖縄県豊見城市豊崎1-1174", map:"オリックスレンタカー 那覇空港店",
+        note:"表上預計 18:00 還，店家 19:00 關門。還完坐接駁車到機場，約 20 分。" },
       { type:"fixed", time:"21:30", title:"台灣虎航 IT233　那霸 → 桃園", note:"預計 22:05 抵達桃園（台灣時間）。" }
     ],
     lodge: null

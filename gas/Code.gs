@@ -9,7 +9,7 @@ function 授權() {
 
 const SHEET_NAME = "記帳";
 const KEY = "oki2026-yeh";
-const COLS = ["id", "日期", "項目", "金額(円)", "誰付", "分法", "每人負擔", "記錄者", "更新時間", "已刪除", "data"];
+const COLS = ["id", "日期", "項目", "金額", "誰付", "分法", "每人負擔", "記錄者", "更新時間", "已刪除", "data"];
 
 function sheet_() {
   const ss = SpreadsheetApp.getActive();
@@ -20,6 +20,7 @@ function sheet_() {
     sh.setFrozenRows(1);
     sh.getRange("B:B").setNumberFormat("@");
   }
+  if (sh.getRange("D1").getValue() === "金額(円)") sh.getRange("D1").setValue("金額");
   return sh;
 }
 
@@ -46,8 +47,9 @@ function upsert_(e) {
     if ((cur.updatedAt || 0) > (e.updatedAt || 0)) return;
   }
   const modeName = { even: "平分", cover: "幫人出", custom: "自己填" }[e.mode] || e.mode;
-  const sharesText = Object.keys(e.shares || {}).map(n => n + " " + e.shares[n]).join("、");
-  const vals = [String(e.id), e.date, e.item, e.amount, e.payer, modeName, sharesText, e.by || "",
+  const sharesText = Object.keys(e.shares || {}).map(n => n + " " + Number(e.shares[n]).toLocaleString("en-US")).join("、") + (e.cur === "TWD" ? "（台幣）" : "");
+  const money = (e.cur === "TWD" ? "NT$ " : "¥ ") + Number(e.amount || 0).toLocaleString("en-US");
+  const vals = [String(e.id), e.date, e.item, money, e.payer, modeName, sharesText, e.by || "",
                 new Date(e.updatedAt || Date.now()), e.deleted ? "是" : "", JSON.stringify(e)];
   if (row > 0) sh.getRange(row, 1, 1, vals.length).setValues([vals]);
   else sh.appendRow(vals);

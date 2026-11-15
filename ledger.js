@@ -10,7 +10,7 @@ const SPLIT_DATE = "2026-11-21";
 const TRIP_DATES = ["2026-11-18","2026-11-19","2026-11-20","2026-11-21","2026-11-22","2026-11-23"];
 
 const L = {
-  entries: {}, queue: [], me: null, rate: 0.2, view: "list", lastSync: null, syncing: false, online: navigator.onLine,
+  entries: {}, queue: [], me: null, rate: 0.2, settleCur: "JPY", view: "list", lastSync: null, syncing: false, online: navigator.onLine,
 };
 
 /* ---------- storage ---------- */
@@ -22,12 +22,18 @@ function loadLocal(){
   L.me = lsGet("oki_me", null);
   L.rate = lsGet("oki_rate", 0.2);
   L.lastSync = lsGet("oki_last", null);
+  L.settleCur = lsGet("oki_scur", "JPY");
 }
 function saveLocal(){ lsSet("oki_entries", L.entries); lsSet("oki_queue", L.queue); }
 
 /* ---------- money helpers ---------- */
 const yen = n => "¥ " + Math.round(n).toLocaleString("en-US");
 const twd = n => "NT$" + Math.round(n * L.rate).toLocaleString("en-US");
+const curOf = e => (e && e.cur === "TWD") ? "TWD" : "JPY";
+const toJPY = (v, cur) => cur === "TWD" ? v / L.rate : v;
+const money = (v, cur) => (cur === "TWD" ? "NT$ " : "¥ ") + Math.round(v).toLocaleString("en-US");
+const approx = (v, cur) => cur === "TWD" ? "約 ¥ " + Math.round(v / L.rate).toLocaleString("en-US") : "約 NT$ " + Math.round(v * L.rate).toLocaleString("en-US");
+const sMoney = vJPY => money(L.settleCur === "TWD" ? vJPY * L.rate : vJPY, L.settleCur);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
@@ -115,24 +121,26 @@ function coverPresets(){
 
 /* ---------- settlement ---------- */
 function settle(){
+  /* 全部換成日圓算（台幣用設定的匯率換），顯示時再換成要看的幣別 */
   const paid = {}, owe = {};
   Object.values(L.entries).forEach(e => {
     if (e.deleted) return;
-    paid[e.payer] = (paid[e.payer] || 0) + e.amount;
-    Object.entries(e.shares || {}).forEach(([n, v]) => owe[n] = (owe[n] || 0) + v);
+    const c = curOf(e);
+    paid[e.payer] = (paid[e.payer] || 0) + toJPY(e.amount, c);
+    Object.entries(e.shares || {}).forEach(([n, v]) => owe[n] = (owe[n] || 0) + toJPY(v, c));
   });
-  const names = [...PEOPLE, FUND].filter(n => paid[n] || owe[n]);
+  const names = [...PEOPLE, FUND].filter(n => Math.round(paid[n] || 0) || Math.round(owe[n] || 0));
   const rows = names.map(n => ({ n, owe: owe[n] || 0, paid: paid[n] || 0, net: (paid[n] || 0) - (owe[n] || 0) }));
-  const cred = rows.filter(r => r.net > 0).map(r => ({ n: r.n, v: r.net })).sort((a, b) => b.v - a.v);
-  const debt = rows.filter(r => r.net < 0).map(r => ({ n: r.n, v: -r.net })).sort((a, b) => b.v - a.v);
+  const cred = rows.filter(r => r.net >= 1).map(r => ({ n: r.n, v: r.net })).sort((a, b) => b.v - a.v);
+  const debt = rows.filter(r => r.net <= -1).map(r => ({ n: r.n, v: -r.net })).sort((a, b) => b.v - a.v);
   const xfers = [];
   let i = 0, j = 0;
   while (i < debt.length && j < cred.length) {
     const v = Math.min(debt[i].v, cred[j].v);
-    if (v > 0) xfers.push({ from: debt[i].n, to: cred[j].n, v });
+    if (v >= 1) xfers.push({ from: debt[i].n, to: cred[j].n, v });
     debt[i].v -= v; cred[j].v -= v;
-    if (debt[i].v === 0) i++;
-    if (cred[j].v === 0) j++;
+    if (debt[i].v < 1) i++;
+    if (cred[j].v < 1) j++;
   }
   return { rows, xfers };
 }
@@ -197,12 +205,12 @@ function renderLedger(){
   if (!el) return;
   if (!L.me) { el.innerHTML = whoAmI(); bindWho(el); return; }
   const list = liveEntries();
-  const spend = list.filter(e => e.item !== "繳公費").reduce((s, e) => s + e.amount, 0);
+  const spend = list.filter(e => e.item !== "繳公費").reduce((s, e) => s + toJPY(e.amount, curOf(e)), 0);
   const st = syncText();
   let h = `<div class="lhead"><h1>記帳</h1><div class="seg"><button data-lv="list" class="${L.view==="list"?"on":""}">明細</button><button data-lv="settle" class="${L.view==="settle"?"on":""}">結算</button></div></div>
   <div class="sync ${st.off?"off":""}">${esc(st.t)}　<button class="linkbtn" data-act="sync">重新整理</button></div>`;
   if (L.view === "list") {
-    h += `<div class="total"><span class="y">${yen(spend)}</span><span class="tw">約 ${twd(spend)}</span></div>`;
+    h += `<div class="total"><span class="y">${yen(spend)}</span><span class="tw">${approx(spend, "JPY")}</span></div>`;
     if (!list.length) {
       h += `<div class="empty tilebg">還沒有任何一筆。<br>花了錢就按右下角「記一筆」，<br>只填金額和項目也可以。</div>`;
     } else {
@@ -212,10 +220,10 @@ function renderLedger(){
       Object.keys(byDate).sort().reverse().forEach(d => {
         const arr = byDate[d].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         const dt = new Date(d + "T00:00:00");
-        const sum = arr.filter(e => e.item !== "繳公費").reduce((s, e) => s + e.amount, 0);
+        const sum = arr.filter(e => e.item !== "繳公費").reduce((s, e) => s + toJPY(e.amount, curOf(e)), 0);
         h += `<div class="dayh"><span>${dt.getMonth()+1}/${dt.getDate()} 週${"日一二三四五六"[dt.getDay()]}</span><span class="num">${yen(sum)}</span></div>`;
         arr.forEach(e => {
-          h += `<button class="ent ${GAS_URL && L.queue.includes(e.id)?"unsynced":""}" data-edit="${e.id}"><span class="l">${esc(e.item || "（沒寫項目）")}<small>${esc(describe(e))}</small></span><span class="r">${yen(e.amount)}<small>${twd(e.amount)}</small></span></button>`;
+          h += `<button class="ent ${GAS_URL && L.queue.includes(e.id)?"unsynced":""}" data-edit="${e.id}"><span class="l">${esc(e.item || "（沒寫項目）")}<small>${esc(describe(e))}</small></span><span class="r">${money(e.amount, curOf(e))}<small>${approx(e.amount, curOf(e))}</small></span></button>`;
         });
       });
       h += `</div>`;
@@ -231,15 +239,19 @@ function renderLedger(){
 function renderSettle(){
   const { rows, xfers } = settle();
   if (!rows.length) return `<div class="empty tilebg">記了帳之後，這裡會算出每個人要出多少、誰要轉給誰。</div>`;
-  let h = `<div class="hint">日圓結算，台幣只是參考（1 円 ≈ ${L.rate} 台幣）</div>
+  const hasTWD = liveEntries().some(e => curOf(e) === "TWD");
+  let h = `<div class="hint" style="display:flex;align-items:center;justify-content:space-between;gap:10px"><span>${hasTWD ? `台幣的帳用 1 円 ≈ ${L.rate} 台幣換算` : `台幣只是參考（1 円 ≈ ${L.rate} 台幣）`}</span>
+    <span class="seg"><button data-scur="JPY" class="${L.settleCur==="JPY"?"on":""}">円</button><button data-scur="TWD" class="${L.settleCur==="TWD"?"on":""}">NT$</button></span></div>
   <div class="rtable"><div class="prow h"><div></div><div>要出</div><div>已付</div><div>差額</div></div>`;
   rows.forEach(r => {
-    h += `<div class="prow"><div>${esc(r.n)}</div><div>${yen(r.owe)}</div><div>${yen(r.paid)}</div><div class="${r.net>0?"pos":r.net<0?"neg":""}">${r.net>0?"+":r.net<0?"−":""}${Math.abs(r.net).toLocaleString("en-US")}</div></div>`;
+    const net = L.settleCur === "TWD" ? r.net * L.rate : r.net;
+    h += `<div class="prow"><div>${esc(r.n)}</div><div>${sMoney(r.owe)}</div><div>${sMoney(r.paid)}</div><div class="${Math.round(net)>0?"pos":Math.round(net)<0?"neg":""}">${Math.round(net)>0?"+":Math.round(net)<0?"−":""}${Math.abs(Math.round(net)).toLocaleString("en-US")}</div></div>`;
   });
   h += `</div><div class="page" style="padding-top:8px"><h2>這樣轉就清了</h2></div><div class="xfer">`;
   if (!xfers.length) h += `<div class="hint" style="padding:0">大家剛好打平，不用轉。</div>`;
   xfers.forEach(x => {
-    h += `<div class="x">${esc(x.from)}<span class="arr"></span>${esc(x.to)}<span class="v">${yen(x.v)}<small>${twd(x.v)}</small></span></div>`;
+    const other = L.settleCur === "TWD" ? "約 ¥ " + Math.round(x.v).toLocaleString("en-US") : "約 NT$ " + Math.round(x.v * L.rate).toLocaleString("en-US");
+    h += `<div class="x">${esc(x.from)}<span class="arr"></span>${esc(x.to)}<span class="v">${sMoney(x.v)}<small>${other}</small></span></div>`;
   });
   h += `</div><div class="hint" style="margin-top:10px">「要出」是每個人最後該負擔的錢（幫人出的已經算進去），「已付」是他實際掏出來的錢。</div>
   <div class="page" style="padding-top:6px"><h2>其他</h2>
@@ -257,6 +269,7 @@ function bindWho(el){
 }
 function bindLedger(el){
   el.querySelectorAll("[data-lv]").forEach(b => b.onclick = () => { L.view = b.dataset.lv; renderLedger(); });
+  el.querySelectorAll("[data-scur]").forEach(b => b.onclick = () => { L.settleCur = b.dataset.scur; lsSet("oki_scur", L.settleCur); renderLedger(); });
   el.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => openEntry(L.entries[b.dataset.edit]));
   el.querySelectorAll("[data-act]").forEach(b => b.onclick = () => {
     const a = b.dataset.act;
@@ -280,11 +293,11 @@ const defaultParts = d => d >= SPLIT_DATE ? [...AFTER_SPLIT] : [...PEOPLE];
 function openEntry(e){
   if (e) {
     F = JSON.parse(JSON.stringify(e));
-    F.weights = F.weights || {}; F.cover = F.cover || {}; F.custom = F.custom || (F.mode === "custom" ? { ...F.shares } : {});
+    F.cur = curOf(e); F.weights = F.weights || {}; F.cover = F.cover || {}; F.custom = F.custom || (F.mode === "custom" ? { ...F.shares } : {});
     F.isNew = false;
   } else {
     const d = defaultDate();
-    F = { id: uid(), createdAt: Date.now(), date: d, item: "", amount: "", payer: L.me || "倫", parts: defaultParts(d), mode: "even", weights: {}, cover: {}, custom: {}, isNew: true };
+    F = { id: uid(), createdAt: Date.now(), cur: "JPY", date: d, item: "", amount: "", payer: L.me || "倫", parts: defaultParts(d), mode: "even", weights: {}, cover: {}, custom: {}, isNew: true };
   }
   F.pick = null;
   drawSheet();
@@ -295,7 +308,7 @@ function drawSheet(){
   const dayChips = TRIP_DATES.map(d => { const n = +d.slice(8); return `<button class="chip small ${F.date===d?"on":""}" data-date="${d}">${n} 日</button>`; }).join("");
   s.innerHTML = `
   <h2>${F.isNew ? "記一筆" : "改這筆"}<button data-close>關閉</button></h2>
-  <div class="amt"><span>¥</span><input id="f-amt" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="${esc(F.amount)}" aria-label="金額（日圓）"><span class="tw" id="f-tw"></span></div>
+  <div class="amt"><button class="curbtn" id="f-cur" aria-label="切換幣別">${F.cur === "TWD" ? "NT$" : "¥"}</button><input id="f-amt" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="${esc(F.amount)}" aria-label="金額"><span class="tw" id="f-tw"></span></div>
   <div class="field"><input class="txtin" id="f-item" placeholder="項目，例如：古宇利 午餐" value="${esc(F.item)}" aria-label="項目"></div>
   <div class="field"><span class="flabel">哪一天</span><div class="chips">${dayChips}</div></div>
   <div class="field"><span class="flabel">誰付的</span><div class="chips">${[...PEOPLE, FUND].map(p => `<button class="chip ${p===FUND?"fund":""} ${F.payer===p?"on":""}" data-payer="${p}">${p}</button>`).join("")}</div></div>
@@ -312,6 +325,11 @@ function drawSheet(){
   const amt = s.querySelector("#f-amt"), item = s.querySelector("#f-item");
   amt.oninput = () => { F.amount = amt.value.replace(/[^\d]/g, ""); if (amt.value !== F.amount) amt.value = F.amount; drawModeBody(); };
   item.oninput = () => { F.item = item.value; };
+  s.querySelector("#f-cur").onclick = () => {
+    F.cur = F.cur === "TWD" ? "JPY" : "TWD";
+    toast(F.cur === "TWD" ? "這筆用台幣記" : "這筆用日圓記");
+    drawSheet();
+  };
   s.querySelectorAll("[data-date]").forEach(b => b.onclick = () => {
     const was = F.date; F.date = b.dataset.date;
     const before = defaultParts(was).join(), nowDef = defaultParts(F.date);
@@ -337,7 +355,7 @@ function drawSheet(){
 function drawModeBody(){
   const box = document.getElementById("f-mbody"); if (!box) return;
   const amt = Math.round(Number(F.amount) || 0);
-  document.getElementById("f-tw").textContent = amt ? "約 " + twd(amt) : "";
+  document.getElementById("f-tw").textContent = amt ? approx(amt, F.cur) : (F.cur === "TWD" ? "台幣" : "");
   let h = "";
   if (F.mode !== "custom") {
     h += `<span class="flabel">誰有份（${F.date >= SPLIT_DATE ? "分開後預設六人" : "分開前預設全員"}）</span>
@@ -353,7 +371,7 @@ function drawModeBody(){
   }
   const shares = computeShares({ ...F, amount: amt });
   if (F.mode === "custom") {
-    h += `<span class="flabel">每個人負擔多少（日圓）</span>`;
+    h += `<span class="flabel">每個人負擔多少（${F.cur === "TWD" ? "台幣" : "日圓"}）</span>`;
     PEOPLE.forEach(p => {
       h += `<div class="prow2"><span class="who">${p}</span><span class="what"></span><input inputmode="numeric" data-cust="${p}" value="${F.custom[p] ? esc(F.custom[p]) : ""}" placeholder="0"></div>`;
     });
@@ -366,7 +384,7 @@ function drawModeBody(){
       h += `<div class="prow2"><span class="who">${p}</span><span class="what">${covered ? "由 " + by.join("、") + " 出" : ""}</span>
         ${F.mode === "even" ? `<span class="step"><button data-w="${p}" data-d="-1" aria-label="${p} 少一份">−</button><span>${w}</span><button data-w="${p}" data-d="1" aria-label="${p} 多一份">＋</button></span><span style="font-size:12px;color:var(--ink2)">份</span>` : ""}
         ${F.mode === "cover" ? `<button class="chip small ${F.pick===p?"on":""}" data-pick="${p}">${covered ? "改" : "誰出"}</button>` : ""}
-        <span class="amtv">${covered ? "→" : yen(shares[p] || 0)}</span></div>`;
+        <span class="amtv">${covered ? "→" : money(shares[p] || 0, F.cur)}</span></div>`;
       if (F.mode === "cover" && F.pick === p) {
         h += `<div class="cover-pick"><div class="chips">${PEOPLE.filter(x => x !== p).map(x => `<button class="chip small ${by.includes(x)?"on":""}" data-cby="${x}">${x}</button>`).join("")}
           <button class="chip small" data-cclear="1">自己出</button></div></div>`;
@@ -374,9 +392,9 @@ function drawModeBody(){
     });
     if (F.mode === "cover") {
       const extra = Object.keys(shares).filter(n => !F.parts.includes(n));
-      extra.forEach(n => { h += `<div class="prow2"><span class="who">${n}</span><span class="what">沒有份，幫人出</span><span class="amtv">${yen(shares[n])}</span></div>`; });
+      extra.forEach(n => { h += `<div class="prow2"><span class="who">${n}</span><span class="what">沒有份，幫人出</span><span class="amtv">${money(shares[n], F.cur)}</span></div>`; });
       const bearers = Object.entries(shares).filter(([, v]) => v > 0);
-      if (bearers.length) h += `<div class="check">結果：${bearers.map(([n, v]) => `${n} ${yen(v)}`).join("、")}</div>`;
+      if (bearers.length) h += `<div class="check">結果：${bearers.map(([n, v]) => `${n} ${money(v, F.cur)}`).join("、")}</div>`;
     }
     h += `</div>`;
   }
@@ -384,7 +402,7 @@ function drawModeBody(){
   const tot = sumShares(shares);
   const chk = document.getElementById("f-check");
   const bad = amt && tot !== amt;
-  chk.innerHTML = F.mode === "custom" && amt ? `<div class="check ${bad ? "bad" : ""}">${bad ? `加起來 ${yen(tot)}，跟總額差 ${yen(amt - tot)}` : "加起來剛好"}</div>` : (!F.parts.length && F.mode !== "custom" ? `<div class="check bad">至少要有一個人有份</div>` : "");
+  chk.innerHTML = F.mode === "custom" && amt ? `<div class="check ${bad ? "bad" : ""}">${bad ? `加起來 ${money(tot, F.cur)}，跟總額差 ${money(amt - tot, F.cur)}` : "加起來剛好"}</div>` : (!F.parts.length && F.mode !== "custom" ? `<div class="check bad">至少要有一個人有份</div>` : "");
   document.getElementById("f-save").disabled = !amt || (F.mode === "custom" ? bad : !F.parts.length);
 
   box.querySelectorAll("[data-part]").forEach(b => b.onclick = () => {
@@ -417,7 +435,7 @@ function drawModeBody(){
     const v = inp.value.replace(/[^\d]/g, ""); if (inp.value !== v) inp.value = v;
     F.custom[inp.dataset.cust] = v;
     const amt2 = Math.round(Number(F.amount) || 0), tot2 = sumShares(computeShares(F)), bad2 = amt2 && tot2 !== amt2;
-    document.getElementById("f-check").innerHTML = amt2 ? `<div class="check ${bad2 ? "bad" : ""}">${bad2 ? `加起來 ${yen(tot2)}，跟總額差 ${yen(amt2 - tot2)}` : "加起來剛好"}</div>` : "";
+    document.getElementById("f-check").innerHTML = amt2 ? `<div class="check ${bad2 ? "bad" : ""}">${bad2 ? `加起來 ${money(tot2, F.cur)}，跟總額差 ${money(amt2 - tot2, F.cur)}` : "加起來剛好"}</div>` : "";
     document.getElementById("f-save").disabled = !amt2 || bad2;
   });
 }
@@ -426,7 +444,7 @@ function saveEntry(){
   const amt = Math.round(Number(F.amount) || 0);
   if (!amt) return;
   const e = {
-    id: F.id, createdAt: F.createdAt || Date.now(), date: F.date, item: (F.item || "").trim(), amount: amt, payer: F.payer,
+    id: F.id, createdAt: F.createdAt || Date.now(), cur: F.cur === "TWD" ? "TWD" : "JPY", date: F.date, item: (F.item || "").trim(), amount: amt, payer: F.payer,
     mode: F.mode, parts: F.mode === "custom" ? [] : F.parts, weights: F.mode === "even" ? F.weights : {},
     cover: F.mode === "cover" ? F.cover : {}, deleted: false
   };
@@ -442,15 +460,16 @@ function openFund(){
   const s = document.getElementById("sheet");
   s.innerHTML = `<h2>繳公費<button data-close>關閉</button></h2>
   <p style="font-size:14px;color:var(--ink2)">有人把錢交進公費錢包時記一筆。之後公費付的帳會從裡面扣，結算時算出多退少補。</p>
-  <div class="amt" style="margin-top:12px"><span>¥</span><input id="g-amt" inputmode="numeric" placeholder="0" aria-label="金額"></div>
+  <div class="amt" style="margin-top:12px"><button class="curbtn" id="g-cur" aria-label="切換幣別">¥</button><input id="g-amt" inputmode="numeric" placeholder="0" aria-label="金額"></div>
   <div class="field"><span class="flabel">誰繳的</span><div class="chips">${PEOPLE.map(p => `<button class="chip ${p===L.me?"on":""}" data-gp="${p}">${p}</button>`).join("")}</div></div>
   <button class="save" id="g-save">記下</button>`;
-  let who = L.me;
+  let who = L.me, gcur = "JPY";
+  s.querySelector("#g-cur").onclick = (ev) => { gcur = gcur === "TWD" ? "JPY" : "TWD"; ev.target.textContent = gcur === "TWD" ? "NT$" : "¥"; };
   s.querySelectorAll("[data-gp]").forEach(b => b.onclick = () => { who = b.dataset.gp; s.querySelectorAll("[data-gp]").forEach(x => x.classList.toggle("on", x === b)); });
   s.querySelector("#g-save").onclick = () => {
     const amt = Math.round(Number(s.querySelector("#g-amt").value.replace(/[^\d]/g, "")) || 0);
     if (!amt || !who) return;
-    upsert({ id: uid(), createdAt: Date.now(), date: defaultDate(), item: "繳公費", amount: amt, payer: who, mode: "custom", parts: [], weights: {}, cover: {}, shares: { [FUND]: amt }, deleted: false });
+    upsert({ id: uid(), createdAt: Date.now(), cur: gcur, date: defaultDate(), item: "繳公費", amount: amt, payer: who, mode: "custom", parts: [], weights: {}, cover: {}, shares: { [FUND]: amt }, deleted: false });
     closeSheet(); toast("記好了");
   };
   s.querySelectorAll("[data-close]").forEach(b => b.onclick = closeSheet);

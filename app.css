@@ -184,3 +184,15 @@ a{color:inherit}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* 幣別切換 */
+.curbtn{font-size:18px;font-weight:700;padding:4px 8px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);white-space:nowrap}
+
+/* 電腦開：中間一欄，像手機一樣 */
+@media (min-width:700px){
+  html{background:#C9D2CF}
+  body{background:transparent}
+  #app{background:var(--bg);min-height:100vh;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 10px 40px rgba(0,0,0,.08);transition:background .3s}
+  .nav{left:50%;right:auto;width:560px;transform:translateX(-50%);border-radius:0}
+  .sheet{border-radius:20px 20px 0 0}
+}
