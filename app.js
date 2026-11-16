@@ -156,9 +156,10 @@ function renderTrip(){
   });
   h += `</div>`;
   if (day.backups && day.backups.length) {
-    h += `<details class="backup"><summary>備案 <span>${day.backups.length} 個，臨時改行程或下雨時用</span></summary><div class="blist">${day.backups.map(b => `
+    h += `<details class="backup"><summary>備案 <span>${day.backups.length} 個，下雨、沒訂到位或臨時改行程時用</span></summary><div class="blist">${day.backups.map(b => `
       <div class="bitem">
         <div class="bt"><b>${esc(b.n)}</b>${closedBadge(b, day.date)}${(b.tags || []).map(t => `<span class="btag ${t === "蔬食友善" ? "veg" : ""}">${esc(t)}</span>`).join("")}</div>
+        ${b.jp ? `<div class="bh jp">日文：${esc(b.jp)}</div>` : ""}
         ${b.h ? `<div class="bh">${esc(b.h)}</div>` : ""}
         <p>${esc(b.note || "")}</p>
         ${actsHtml(b)}
