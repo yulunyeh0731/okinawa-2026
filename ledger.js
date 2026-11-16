@@ -154,10 +154,17 @@ function merge(list){
   });
   saveLocal();
 }
+/* 訊號不好時不要卡住：超過時間就放棄，下次再試 */
+function fetchT(url, opt, ms){
+  const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), ms || 25000);
+  return fetch(url, { ...(opt || {}), signal: ctl.signal }).finally(() => clearTimeout(tm));
+}
+let lastPull = 0;
 async function pull(){
   if (!GAS_URL) return;
+  lastPull = Date.now();
   try {
-    const r = await fetch(GAS_URL + "?k=" + encodeURIComponent(GAS_KEY), { cache: "no-store" });
+    const r = await fetchT(GAS_URL + "?k=" + encodeURIComponent(GAS_KEY), { cache: "no-store" });
     const j = await r.json();
     if (j.ok) { merge(j.entries); L.lastSync = Date.now(); lsSet("oki_last", L.lastSync); }
   } catch (e) { /* 沒網路就用手機裡的 */ }
@@ -166,20 +173,27 @@ async function flush(){
   if (!GAS_URL || !L.queue.length || L.syncing) return;
   L.syncing = true;
   const ids = [...L.queue];
+  const sent = {}; ids.forEach(id => { if (L.entries[id]) sent[id] = L.entries[id].updatedAt; });
+  let ok = false;
   try {
-    const r = await fetch(GAS_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+    const r = await fetchT(GAS_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({ k: GAS_KEY, entries: ids.map(id => L.entries[id]).filter(Boolean) }) });
     const j = await r.json();
     if (j.ok) {
-      L.queue = L.queue.filter(id => !ids.includes(id));
+      ok = true;
+      // 上傳途中又改過的那筆留在佇列，下一輪再傳
+      L.queue = L.queue.filter(id => !ids.includes(id) || (L.entries[id] && L.entries[id].updatedAt !== sent[id]));
       merge(j.entries);
       L.lastSync = Date.now(); lsSet("oki_last", L.lastSync);
     }
   } catch (e) { /* 留在佇列，下次再傳 */ }
   L.syncing = false;
   saveLocal();
+  if (ok && L.queue.length) return flush(); // 上傳途中新記的帳接著傳
 }
 async function syncAll(){ await flush(); await pull(); renderLedger(); }
+/* 切到記帳頁時抓一次對方剛記的帳（15 秒內抓過就不重抓） */
+function refreshLedger(){ if (GAS_URL && Date.now() - lastPull > 15000) syncAll(); }
 
 function upsert(e){
   e.updatedAt = Date.now();

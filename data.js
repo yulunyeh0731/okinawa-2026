@@ -23,7 +23,7 @@ const DAYS = [
     items: [
       { type:"fixed", time:"16:00", title:"到桃園機場第一航廈", note:"台灣虎航在第一航廈。" },
       { type:"fixed", time:"18:20", title:"台灣虎航 IT232　桃園 → 那霸", note:"預計 20:40 抵達那霸（日本時間）。" },
-      { type:"drive", text:"坐單軌電車（ゆいレール）到おもろまち站" },
+      { type:"drive", text:"坐單軌電車（ゆいレール）到おもろまち站，約 23 分。末班車 23:30，趕不上就搭計程車（6 人要 2 台）" },
       { type:"stop", title:"Almont Hotel 入住", sub:"アルモントホテル那覇おもろまち　おもろまち站走路約 4 分", map:"アルモントホテル那覇おもろまち" }
     ],
     lodge: "almont"
@@ -53,7 +53,7 @@ const DAYS = [
     lodge: "coral"
   },
   {
-    date: "2026-11-20", wx: { lat: 26.55, lon: 128.05, at: "大浦" }, d: 20, wk: "週五", route: "PARTY DAY",
+    date: "2026-11-20", wx: { lat: 26.59, lon: 127.98, at: "名護大浦" }, d: 20, wk: "週五", route: "PARTY DAY",
     theme: { w1:"#9AD7E6", w2:"#3FA7C9", w3:"#1F6F99", flower:"#E86A7E", te:"#C3E1EA", tf:"#E2F1F5", tp:"#ADD6E2", bg:"#F1F5F7", chip:"#DCEBF1", line:"#A6D2E1" },
     facts: [ {t:"日落約 17:38"}, {t:"杰和凡宜的 party"} ],
     items: [
@@ -95,7 +95,7 @@ const DAYS = [
     lodge: "livele"
   },
   {
-    date: "2026-11-22", wx: { lat: 26.33, lon: 127.83, at: "中部" }, d: 22, wk: "週日", route: "讀谷　往　勝連城",
+    date: "2026-11-22", wx: { lat: 26.40, lon: 127.73, at: "讀谷" }, d: 22, wk: "週日", route: "讀谷　往　勝連城",
     theme: { w1:"#B6E3F0", w2:"#4BB3D6", w3:"#1C6E9E", flower:"#D2384E", te:"#C6E2EE", tf:"#E4F2F8", tp:"#B0D7E8", bg:"#F1F6F9", chip:"#DDEEF5", line:"#A9D3E6" },
     facts: [ {t:"日落約 17:37"}, {t:"三連休第二天，晚餐記得先訂", warn:true} ],
     items: [
@@ -104,7 +104,7 @@ const DAYS = [
       { type:"stop", title:"琉球村", sub:"9:30–17:00　門票 2,000 円（用 Agoda 買比較便宜）", mapcode:"206 033 096*41", map:"琉球村 恩納村",
         note:"琉球王國主題園區：表演、百年古宅、彩繪風獅爺、DIY、換裝。", link:"https://okinawa.letsgojp.com/archives/884774/" },
       { type:"drive", text:"開車約 50 分" },
-      { type:"stop", title:"勝連城跡", sub:"世界遺產，城牆是相方積み的多角形石頭", mapcode:"499 570 171*28", tel:"098-978-7373", map:"勝連城跡" },
+      { type:"stop", title:"勝連城跡", sub:"世界遺產　9:00–18:00（17:30 停止售票）　門票 600 円", note:"從あまわりパーク買票、停車（免費）。到城頂要爬石階，穿好走的鞋。", mapcode:"499 570 171*28", tel:"098-978-7373", map:"勝連城跡" },
       { type:"drive", text:"回住的地方約 50 分" },
       { type:"stop", title:"晚餐：還沒決定", note:"週日加連假，4 人以上建議先訂位。" }
     ],
@@ -117,7 +117,7 @@ const DAYS = [
     lodge: "livele"
   },
   {
-    date: "2026-11-23", wx: { lat: 26.18, lon: 127.67, at: "那霸" }, d: 23, wk: "週一", route: "讀谷　往　那霸機場",
+    date: "2026-11-23", wx: { lat: 26.21, lon: 127.68, at: "那霸" }, d: 23, wk: "週一", route: "讀谷　往　那霸機場",
     theme: { w1:"#C8B6E2", w2:"#7E68B5", w3:"#2C2F6B", flower:"#F4A9BB", te:"#D9D0EA", tf:"#EEE9F6", tp:"#CBBFE2", bg:"#F4F2F8", chip:"#E6E1F0", line:"#C4B9DE" },
     facts: [ {t:"日本國定假日（勤勞感謝日）", warn:true}, {t:"還車前記得加滿油"} ],
     pending: true,
@@ -125,7 +125,7 @@ const DAYS = [
       { type:"fixed", time:"10:00 前", title:"Livele Garden Villa 退房" },
       { type:"stop", title:"行程還在排", note:"目前表上的候選：",
         food:[
-          { n:"てぃーち", h:"11:00–15:00 L.O.", note:"沖繩麵＋芒果甜點，在豐見城（豊見城市翁長664-2），離還車點很近。週一可能公休，出發前看 IG 確認。098-856-8558", link:"https://www.instagram.com/teech_cafe" },
+          { n:"てぃーち", h:"11:00–15:00 L.O.", note:"沖繩麵＋芒果甜點，在豐見城（豊見城市翁長664-2），離還車點很近。Mapcode 232 545 238*00。公休日各處寫的不一樣，11/23 又是國定假日，去之前看 IG 確認。098-856-8558", link:"https://www.instagram.com/teech_cafe" },
           { n:"海をのむ", note:"沖繩麵，在うるま", h:"11:00–15:00", closed:[2,3,4], closedText:"只開週五到週一", link:"https://www.instagram.com/umi_wo_nomu/" },
           { n:"ASMUI 大石林山", h:"16:00 停止入場", note:"本島最北，9:30–17:30。從讀谷單程約 2 小時。門票 2,500 円", link:"https://asmui.jp" }
         ] },

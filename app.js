@@ -59,41 +59,68 @@ function applyTheme(day){
   document.querySelector('meta[name="theme-color"]').setAttribute("content", day.theme.w3);
 }
 
-/* ---------- 天氣（Open-Meteo，免金鑰；存在手機裡，沒網路也看得到上次的） ---------- */
-const WX_ICON = c => c === 0 ? ["☀️", "晴"] : c <= 1 ? ["🌤️", "晴"] : c === 2 ? ["⛅", "晴時多雲"] : c === 3 ? ["☁️", "陰"]
-  : c <= 48 ? ["🌫️", "霧"] : c <= 57 ? ["🌦️", "毛毛雨"] : c <= 63 ? ["🌧️", "雨"] : c <= 67 ? ["🌧️", "大雨"]
-  : c <= 81 ? ["🌦️", "陣雨"] : c <= 82 ? ["🌧️", "大陣雨"] : ["⛈️", "雷雨"];
-let WX = {}; try { WX = JSON.parse(localStorage.getItem("oki_wx") || "{}"); } catch (e) {}
+/* ---------- 天氣（挪威氣象局 MET Norway，免金鑰；存在手機裡，沒網路也看得到上次的） ---------- */
+function wxSym(code){
+  const c = String(code || "").replace(/_(day|night|polartwilight)$/, "");
+  if (c.includes("thunder")) return ["⛈️", "雷雨", 6];
+  if (c.startsWith("heavy")) return ["🌧️", "大雨", 5];
+  if (c === "lightrainshowers") return ["🌦️", "短暫陣雨", 3];
+  if (c.includes("showers")) return ["🌦️", "陣雨", 4];
+  if (c.startsWith("light")) return ["🌦️", "小雨", 3];
+  if (c === "rain" || c === "sleet" || c === "snow") return ["🌧️", "雨", 4];
+  if (c === "fog") return ["🌫️", "霧", 2];
+  if (c === "cloudy") return ["☁️", "陰", 2];
+  if (c === "partlycloudy") return ["⛅", "多雲時晴", 1];
+  if (c === "fair") return ["🌤️", "晴", 0];
+  if (c === "clearsky") return ["☀️", "晴", 0];
+  return null;
+}
+/* 從逐時預報整理出某一天（日本時間）白天的樣子：09–15、15–21 兩段，天氣取比較差的那段 */
+function wxDaily(ts, date){
+  const d0 = Date.parse(date + "T00:00:00+09:00");
+  const ok = x => x && x.data && x.data.next_6_hours && x.data.next_6_hours.details;
+  const at = h => ts.find(x => Date.parse(x.time) === d0 + h * 3600e3);
+  let blocks = [at(9), at(15)].filter(ok);
+  if (!blocks.length) { const x = ts.find(x => { const t = Date.parse(x.time); return t >= d0 + 6 * 3600e3 && t < d0 + 21 * 3600e3 && ok(x); }); if (x) blocks = [x]; }
+  if (!blocks.length) return null;
+  const det = x => x.data.next_6_hours.details;
+  const his = blocks.map(x => det(x).air_temperature_max).filter(v => typeof v === "number");
+  const los = [at(3), ...blocks].filter(ok).map(x => det(x).air_temperature_min).filter(v => typeof v === "number");
+  const sym = blocks.map(x => wxSym(x.data.next_6_hours.summary && x.data.next_6_hours.summary.symbol_code)).filter(Boolean).sort((a, b) => b[2] - a[2])[0];
+  if (!his.length || !los.length || !sym) return null;
+  const mm = blocks.reduce((s, x) => s + (det(x).precipitation_amount || 0), 0);
+  return { ic: sym[0], tx: sym[1], hi: Math.max(...his), lo: Math.min(...los), mm: Math.round(mm * 10) / 10 };
+}
+let WX = {}; try { WX = JSON.parse(localStorage.getItem("oki_wx2") || "{}"); } catch (e) {}
 function wxChip(day){
   const w = WX.days && WX.days[day.date];
   if (!w || !day.wx) return `<span class="fact wx" data-wx hidden></span>`;
-  const [ic, tx] = WX_ICON(w.c);
-  return `<span class="fact wx" data-wx>${ic} ${esc(day.wx.at)} ${tx} ${Math.round(w.lo)}–${Math.round(w.hi)}°${w.p != null ? `　降雨 ${w.p}%` : ""}</span>`;
+  const rain = w.mm >= 0.5 ? `　白天雨量約 ${w.mm >= 10 ? Math.round(w.mm) : w.mm} mm` : "";
+  return `<span class="fact wx" data-wx>${w.ic} ${esc(day.wx.at)} ${esc(w.tx)} ${Math.round(w.lo)}–${Math.round(w.hi)}°${rain}</span>`;
 }
+let wxBusy = false;
 async function loadWeather(){
-  if (WX.t && Date.now() - WX.t < 2 * 3600e3) return;
-  const ds = DAYS.filter(d => d.wx);
-  const q = new URLSearchParams({
-    latitude: ds.map(d => d.wx.lat).join(","), longitude: ds.map(d => d.wx.lon).join(","),
-    daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
-    timezone: "Asia/Tokyo", start_date: DAYS[0].date, end_date: DAYS[DAYS.length - 1].date
-  });
+  if (wxBusy || (WX.t && Date.now() - WX.t < 3 * 3600e3)) return;
+  wxBusy = true;
+  const ds = DAYS.filter(d => d.wx), key = d => d.wx.lat + "," + d.wx.lon, days = {};
   try {
-    const r = await fetch("https://api.open-meteo.com/v1/forecast?" + q);
-    if (!r.ok) return;
-    let j = await r.json(); if (!Array.isArray(j)) j = [j];
-    const days = {};
-    ds.forEach((d, k) => {
-      const D = j[k] && j[k].daily; if (!D) return;
-      const i = D.time.indexOf(d.date);
-      if (i < 0 || D.weather_code[i] == null) return;
-      days[d.date] = { c: D.weather_code[i], hi: D.temperature_2m_max[i], lo: D.temperature_2m_min[i], p: D.precipitation_probability_max[i] };
-    });
-    WX = { t: Date.now(), days };
-    try { localStorage.setItem("oki_wx", JSON.stringify(WX)); } catch (e) {}
-    const slot = document.querySelector("#v-trip [data-wx]");
-    if (slot) { const tmp = document.createElement("div"); tmp.innerHTML = wxChip(DAYS[curDay]); slot.replaceWith(tmp.firstChild); }
-  } catch (e) {}
+    await Promise.all([...new Set(ds.map(key))].map(async k => {
+      const [lat, lon] = k.split(",");
+      const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 15000);
+      try {
+        const r = await fetch(`https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=${lat}&lon=${lon}`, { signal: ctl.signal });
+        if (!r.ok) return;
+        const ts = (await r.json()).properties.timeseries;
+        ds.filter(d => key(d) === k).forEach(d => { const w = wxDaily(ts, d.date); if (w) days[d.date] = w; });
+      } catch (e) {} finally { clearTimeout(tm); }
+    }));
+    if (Object.keys(days).length) {
+      WX = { t: Date.now(), days: { ...(WX.days || {}), ...days } };
+      try { localStorage.setItem("oki_wx2", JSON.stringify(WX)); } catch (e) {}
+      const slot = document.querySelector("#v-trip [data-wx]");
+      if (slot) { const tmp = document.createElement("div"); tmp.innerHTML = wxChip(DAYS[curDay]); slot.replaceWith(tmp.firstChild); }
+    }
+  } finally { wxBusy = false; }
 }
 
 function renderTrip(){
@@ -164,7 +191,7 @@ function renderInfo(){
     <div style="margin-top:12px">${installButtonInfo()}</div>
     ${sec("訂位資料", "預約號碼、確認碼在原始表", `<div class="card"><p>租車預約號碼、機票確認碼這些不放在網頁上（網頁是公開的）。需要時打開原始表看，只有被分享的人打得開。</p>
       <a class="big-link" href="${SOURCE_SHEET}" target="_blank" rel="noopener">打開原始行程表</a></div>`)}
-    ${sec("天氣", "那霸・名護・讀谷的預報", `<div class="card"><p>每天行程頁上方會顯示當天預報（出發前約兩週內才有，越近越準）。要看每小時的話點這裡：</p>
+    ${sec("天氣", "那霸・名護・讀谷的預報", `<div class="card"><p>每天行程頁上方會顯示當天白天的預報（約 9 天內才有，越近越準）。要看每小時的話點這裡：</p>
       <div class="acts"><a class="act" href="https://tenki.jp/forecast/10/50/9110/47201/" target="_blank" rel="noopener">那霸</a><a class="act" href="https://tenki.jp/forecast/10/50/9120/47209/" target="_blank" rel="noopener">名護・大浦</a><a class="act" href="https://tenki.jp/forecast/10/50/9110/47324/" target="_blank" rel="noopener">讀谷</a></div></div>`)}
     ${sec("航班", "去 IT232・回 IT233", `<div class="card"><dl class="kv">
       <dt>去程</dt><dd><b>IT232</b>　11/18（三）18:20 桃園 → 20:40 那霸</dd>
@@ -184,7 +211,9 @@ function renderInfo(){
       <dt>報警</dt><dd><a href="tel:110">110</a></dd>
       <dt>救護車・火災</dt><dd><a href="tel:119">119</a></dd>
       <dt>道路救援 JAF</dt><dd><a href="tel:%238139">#8139</a></dd>
-    </dl><p style="margin-top:6px">車子出狀況或擦撞，先報警，再打 ORIX 店家。</p></div>`)}
+      <dt>台灣駐那霸辦事處</dt><dd><a href="tel:+81988627008">098-862-7008</a>（平日上班時間）</dd>
+      <dt>辦事處急難電話</dt><dd><a href="tel:+818080560122">080-8056-0122</a>（護照遺失、重大事故才打）</dd>
+    </dl><p style="margin-top:6px">車子出狀況或擦撞：先報警，再打取車時拿到的單子上的事故、故障聯絡電話，或打 ORIX 店家。JAF 的 #8139 用台灣門號漫遊可能打不通。</p></div>`)}
     ${sec("參考", "沖繩蔬食餐廳整理", `<div class="card"><div class="acts"><a class="act" href="https://veganladyiris.com/okinawa_veganfood/" target="_blank" rel="noopener">沖繩蔬食餐廳整理</a></div></div>`)}
   </div>`;
   bindCopy(el);
@@ -258,7 +287,7 @@ function toast(msg){
 function show(v){
   document.querySelectorAll(".view").forEach(x => x.classList.toggle("on", x.id === "v-" + v));
 document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
-  if (v === "ledger") renderLedger();
+  if (v === "ledger") { renderLedger(); refreshLedger(); }
   window.scrollTo({ top: 0 });
   try { history.replaceState(null, "", "#" + v); } catch (e) {}
 }
@@ -306,7 +335,14 @@ document.querySelectorAll(".nav button").forEach(b => b.onclick = () => show(b.d
 curDay = pickInitialDay();
 renderTrip();
 loadWeather();
-document.addEventListener("visibilitychange", () => { if (!document.hidden) loadWeather(); });
+/* app 常常是從背景叫回來而不是重開：回來時更新天氣；跨了一天就自動跳到今天 */
+let seenDay = todayStr();
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) return;
+  loadWeather();
+  const t = todayStr();
+  if (t !== seenDay) { seenDay = t; if (DAYS.some(d => d.date === t)) { curDay = pickInitialDay(); renderTrip(); } }
+});
 renderInfo();
 initLedger();
 const h0 = (location.hash || "").slice(1);
