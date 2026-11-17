@@ -1,5 +1,5 @@
 /* 離線：打開過一次之後，沒網路也能看手冊。改版時把 VERSION 加一。 */
-const VERSION = "oki-2026-v20";
+const VERSION = "oki-2026-v21";
 const FONTS = "oki-fonts"; // 字型不跟著版本清掉，改版時不用重新下載
 const CORE = ["./", "index.html", "app.css", "data.js", "ledger.js", "app.js", "manifest.json",
               "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];

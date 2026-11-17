@@ -190,8 +190,10 @@ function renderInfo(){
   el.innerHTML = `<div class="page">
     <h1>重要資訊</h1>
     <div style="margin-top:12px">${installButtonInfo()}</div>
-    ${sec("訂位資料", "預約號碼、確認碼在原始表", `<div class="card"><p>租車預約號碼、機票確認碼這些不放在網頁上（網頁是公開的）。需要時打開原始表看，只有被分享的人打得開。</p>
-      <a class="big-link" href="${SOURCE_SHEET}" target="_blank" rel="noopener">打開原始行程表</a></div>`)}
+    ${sec("行程表和地圖", "試算表・地圖清單", `<div class="card"><h3>原始行程表</h3><p>瑄的 Google 試算表。租車預約號碼、機票確認碼這些不放在網頁上（網頁是公開的），需要時在這裡看，只有被分享的人打得開。</p>
+      <a class="big-link" href="${SOURCE_SHEET}" target="_blank" rel="noopener">打開原始行程表</a></div>
+      <div class="card"><h3>瑄的口袋名單</h3><p>Google 地圖清單「沖繩2026」，31 個地點，不是全部都有排進行程。</p>
+      <a class="big-link" href="https://www.google.com/maps/@26.1941486,127.6870771,12z/data=!4m3!11m2!2sEAS5qWQm7duPw8uWTUTEXw!3e3" target="_blank" rel="noopener">打開 Google 地圖清單</a></div>`)}
     ${sec("天氣", "那霸・名護・讀谷的預報", `<div class="card"><p>每天行程頁上方會顯示當天白天的預報（約 9 天內才有，越近越準）。要看每小時的話點這裡：</p>
       <div class="acts"><a class="act" href="https://tenki.jp/forecast/10/50/9110/47201/" target="_blank" rel="noopener">那霸</a><a class="act" href="https://tenki.jp/forecast/10/50/9120/47209/" target="_blank" rel="noopener">名護・大浦</a><a class="act" href="https://tenki.jp/forecast/10/50/9110/47324/" target="_blank" rel="noopener">讀谷</a></div></div>`)}
     ${sec("航班", "去 IT232・回 IT233", `<div class="card"><dl class="kv">
@@ -215,7 +217,7 @@ function renderInfo(){
       <dt>台灣駐那霸辦事處</dt><dd><a href="tel:+81988627008">098-862-7008</a>（平日上班時間）</dd>
       <dt>辦事處急難電話</dt><dd><a href="tel:+818080560122">080-8056-0122</a>（護照遺失、重大事故才打）</dd>
     </dl><p style="margin-top:6px">車子出狀況或擦撞：先報警，再打取車時拿到的單子上的事故、故障聯絡電話，或打 ORIX 店家。JAF 的 #8139 用台灣門號漫遊可能打不通。</p></div>`)}
-    ${sec("參考", "瑄的口袋名單・蔬食餐廳整理", `<div class="card"><p>瑄的 Google 地圖清單「沖繩2026」，31 個地點，不是全部都有排進行程。</p><div class="acts"><a class="act" href="https://www.google.com/maps/@26.1941486,127.6870771,12z/data=!4m3!11m2!2sEAS5qWQm7duPw8uWTUTEXw!3e3" target="_blank" rel="noopener">瑄的口袋名單（Google 地圖）</a><a class="act" href="https://veganladyiris.com/okinawa_veganfood/" target="_blank" rel="noopener">沖繩蔬食餐廳整理</a></div></div>`)}
+    ${sec("參考", "沖繩蔬食餐廳整理", `<div class="card"><div class="acts"><a class="act" href="https://veganladyiris.com/okinawa_veganfood/" target="_blank" rel="noopener">沖繩蔬食餐廳整理</a></div></div>`)}
   </div>`;
   bindCopy(el);
   bindInstall(el);
