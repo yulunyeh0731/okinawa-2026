@@ -56,9 +56,9 @@ const DAYS = [
   {
     date: "2026-11-20", wx: { lat: 26.59, lon: 127.98, at: "名護大浦" }, d: 20, wk: "週五", route: "PARTY DAY",
     theme: { w1:"#9AD7E6", w2:"#3FA7C9", w3:"#1F6F99", flower:"#E86A7E", te:"#C3E1EA", tf:"#E2F1F5", tp:"#ADD6E2", bg:"#F1F5F7", chip:"#DCEBF1", line:"#A6D2E1" },
-    facts: [ {t:"日落約 17:38"}, {t:"杰和凡宜的 party"} ],
+    facts: [ {t:"日落約 17:38"}, {t:"杰和凡誼的 party"} ],
     items: [
-      { type:"stop", title:"整天在 CORAL ISLAND", note:"杰和凡宜的 party。" }
+      { type:"stop", title:"整天在 CORAL ISLAND", note:"杰和凡誼的 party。" }
     ],
     backups: [
       { n:"大浦的在地蔬菜定食", jp:"あたいぐゎキッチン（わんさか大浦パーク 裡面）", h:"11:00–14:30（週末到 15:00），只有午餐", note:"離 CORAL ISLAND 很近。在大浦的農產直售所裡，用當地蔬菜做的定食，順便可以買菜和水果。第 2、4 個週三公休。", tags:["蔬食友善","午餐"], tel:"0980-51-9446", addr:"沖縄県名護市大浦465-7", map:"わんさか大浦パーク" }
